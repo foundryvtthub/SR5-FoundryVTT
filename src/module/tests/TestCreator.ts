@@ -356,12 +356,12 @@ export const TestCreator = {
     },
 
     /**
-     * Prepare values as configured in an actions roll data using the given actor for dynamic parts and
+     * Prepare values as configured in an actions roll data using the given actor for roll parts and
      * modifying the given data to create a valid SuccessTestData.
      *
-     * @param action An action configuration.
-     * @param actor Any type of actor.
-     * @param data A SuccessTestData or any subclass implementing
+     * @param action An action configuration
+     * @param actor Any type of actor
+     * @param data Data of any SuccessTest implementation. Changes will keep the original reference.
      */
     _prepareTestDataWithAction: async function(action: ActionRollData, actor: SR5Actor, data) {
         // Action values might be needed later to redo the same test.
@@ -386,7 +386,7 @@ export const TestCreator = {
         }
         // The first attribute is either used for skill or attribute only tests.
         if (action.attribute) {
-            const attribute = actor.getAttribute(action.attribute);
+            const attribute = actor.getAttribute(action.attribute, );
             // Don't use addUniquePart as one attribute might be used twice.
             if (attribute) pool.addPart(attribute.label, attribute.value);
             // Apply matrix modifiers, when applicable

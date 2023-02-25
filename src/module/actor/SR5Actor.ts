@@ -27,6 +27,10 @@ import {RecoveryRules} from "../rules/RecoveryRules";
 import { CombatRules } from '../rules/CombatRules';
 
 
+interface ValueOptions {
+    // Should value sources be used or only local values.
+    source?: boolean
+}
 /**
  * The general Shadowrun actor implementation, which currently handles all actor types.
  *
@@ -62,6 +66,7 @@ export class SR5Actor extends Actor {
 
     // Add v10 type helper
     system: Shadowrun.ShadowrunActorDataData; // TODO: foundry-vtt-types v10
+    systemSourced: Shadowrun.ShadowrunActorDataData;
 
     // Holds all operations related to this actors inventory.
     inventory: InventoryFlow;
@@ -461,9 +466,14 @@ export class SR5Actor extends Actor {
         return parseInt(this.system.matrix.rating);
     }
 
-    getAttributes(): Shadowrun.Attributes {
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        return this.system.attributes;
+    /**
+     * Access all actor attributes
+     * 
+     * @param options.source When true, this will use value sources instead of only accessing local values.
+     */
+    getAttributes(options: ValueOptions={}): Shadowrun.Attributes {
+        const system = options.source ? this.getRollData() : this.system;
+        return system.attributes;
     }
 
     /**
@@ -475,13 +485,13 @@ export class SR5Actor extends Actor {
      * @param name An attribute or other stats name.
      * @returns Note, this can return undefined. It is not typed that way, as it broke many things. :)
      */
-    getAttribute(name: string): Shadowrun.AttributeField {
+    getAttribute(name: string, options: ValueOptions={}): Shadowrun.AttributeField {
         // First check vehicle stats, as they don't always exist.
         const stats = this.getVehicleStats();
         if (stats && stats[name]) return stats[name];
 
         // Second check general attributes.
-        const attributes = this.getAttributes();
+        const attributes = this.getAttributes(options);
         return attributes[name];
     }
 
@@ -2004,5 +2014,58 @@ export class SR5Actor extends Actor {
 
         if (this.isMatrixActor) await this.setMatrixDamage(0);
         if (updateData) await this.update(updateData);
+    }
+
+    get valueSources() {
+        if (!this.isVehicle()) return {}
+
+        return {
+            'attributes.intuition': '@driver.attributes.intuition'
+        }
+    }
+
+    getValueSource(source: string) {
+        if (!game.actors) return console.error('Actors Collection not ready yet');
+        const segments = source.split('.');
+        if (!segments.length) throw new Error("An empty value source couldn't be resolved");
+
+        // Without a remote source, map to local value.
+        if (!segments[0].includes('@')) return foundry.utils.getProperty(this, source);
+
+        // Assert value as provider segment
+        const providerSegment = segments.shift();
+        if (!providerSegment || foundry.utils.getType(providerSegment) !== 'string') throw new Error('First source value segment is misformed');
+
+        // Assert provider segment pointing to local path
+        const providerPath = providerSegment.replace('@', '');
+        const provider = foundry.utils.getProperty(this.system, providerPath);
+
+        if (!provider) return console.error('First source value segment can not be resolved as an systemData path');
+
+        // TODO: Add different provider types ({uuid: asd} / 'asd')
+        const actor = game.actors.get(provider);
+        if (!actor) return console.error("Provider didn't point to an existing document", provider);
+
+        const valuePath = ['system', ...segments].join('.');
+
+        return foundry.utils.getProperty(actor, valuePath);
+    }
+
+    /**
+     * 
+     */
+    getRollData(): Shadowrun.ShadowrunActorDataData {
+        const rollData = super.getRollData() as Shadowrun.ShadowrunActorDataData;
+        const sources = this.valueSources;
+
+        for (const [value, source] of Object.entries(sources)) {
+            const sourceValue = this.getValueSource(source);
+            // Avoid falsify checking as those are valid values.
+            if (sourceValue === undefined) continue;
+            
+            foundry.utils.setProperty(rollData, value, sourceValue);
+        }
+
+        return rollData;
     }
 }
