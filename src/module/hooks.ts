@@ -1,3 +1,4 @@
+import { OpposedSummonSpiritTest } from './tests/OpposedSummonSpiritTest';
 import {SR5} from './config';
 import {Migrator} from './migrator/Migrator';
 import {registerSystemSettings} from './settings';
@@ -42,6 +43,8 @@ import {PilotVehicleTest} from "./tests/PilotVehicleTest";
 import {DronePerceptionTest} from "./tests/DronePerceptionTest";
 import {DroneInfiltrationTest} from "./tests/DroneInfiltrationTest";
 import { SuppressionDefenseTest } from './tests/SuppressionDefenseTest';
+import { SummonSpiritTest } from './tests/SummonSpiritTest';
+
 import { quenchRegister } from '../unittests/quench';
 import { createItemMacro, createSkillMacro, rollItemMacro, rollSkillMacro } from './macros';
 
@@ -119,7 +122,7 @@ ___________________
 
             /**
              * .tests define what test implementation to use for each test type (key).
-             * Should you want to override default behaviour for SuccessTest types, overwrite
+             * Should you want to override default behavior for SuccessTest types, overwrite
              * the SuccessTest class reference here
              */
             tests: {
@@ -142,7 +145,9 @@ ___________________
                 NaturalRecoveryPhysicalTest,
                 PilotVehicleTest,
                 DronePerceptionTest,
-                DroneInfiltrationTest
+                DroneInfiltrationTest,
+                SummonSpiritTest,
+                OpposedSummonSpiritTest
             },
             /**
              * Subset of tests meant to be used as the main, active test.
@@ -165,7 +170,8 @@ ___________________
                 FadeTest,
                 PilotVehicleTest,
                 DronePerceptionTest,
-                DroneInfiltrationTest
+                DroneInfiltrationTest,
+                SummonSpiritTest
             },
             /**
              * Subset of tests meant to be used as opposed tests.
@@ -176,7 +182,8 @@ ___________________
                 OpposedTest,
                 PhysicalDefenseTest,
                 SuppressionDefenseTest,
-                CombatSpellDefenseTest
+                CombatSpellDefenseTest,
+                OpposedSummonSpiritTest
             },
             /**
              * Subset of tests meant to be used as resist tests.
@@ -197,7 +204,7 @@ ___________________
             /**
              * Amount of delay used on user filter inputs.
              * This came out of an unclear user issue regarding multi-char UTF symbol inputs, to allow
-             * 'interactive' changing of the delay on the user side until a sweetspot could be found.
+             * 'interactive' changing of the delay on the user side until a sweet spot could be found.
              */
             inputDelay: 300
         };
@@ -302,7 +309,7 @@ ___________________
     }
 
     /**
-     * Hanlde drop events on the hotbar creating different macros.
+     * Handle drop events on the hotbar creating different macros.
      * 
      * NOTE: FoundryVTT Hook callbacks won't be resolved when returning a promise.
      *       While this function calls async methods, it's order of operations isn't important.

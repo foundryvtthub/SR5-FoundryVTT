@@ -46,8 +46,10 @@ export class OpposedTest extends SuccessTest {
         return data;
     }
 
-    async populateDocuments() {
-        await super.populateDocuments();
+    /**
+     * Before populating any documents for THIS test, populate the opposed tests documents first.
+     */
+    async populateTests() {
         await this.against.populateDocuments();
     }
 

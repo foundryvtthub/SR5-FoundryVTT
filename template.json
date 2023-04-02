@@ -960,6 +960,7 @@
         },
         "spirit": {
             "templates": ["common", "skills", "attributes", "limits", "armor", "magic", "movement", "condition_monitors", "physical_combat_values"],
+            "summonerUuid": "",
             "services": 0,
             "bound": false,
             "force": 0,

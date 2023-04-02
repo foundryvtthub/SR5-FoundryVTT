@@ -500,7 +500,8 @@
             "DamageResistanceTest": "Damage Resistance Test",
             "Modifier": "Modifier",
             "Modifiers": "Modifiers",
-            "OpposedTest": "Opposed Test"
+            "OpposedTest": "Opposed Test",
+            "SpiritType": "Spirit Type"
         },
         "ActorSheet": {
             "CreateInventory": "Create inventory place",
@@ -981,6 +982,7 @@
         "MeleeAttackTest": "Melee Weapon Attack",
         "NaturalRecoveryPhysicalTest": "Natural Recovery Physical",
         "NaturalRecoveryStunTest": "Natural Recovery Stun",
+        "OpposedSummonSpiritTest": "Opposing Summoning",
         "OpposedTest": "Opposed Test",
         "PhysicalDefenseTest": "Physical Defense",
         "PhysicalResistTest": "Physical Damage Resist",
@@ -989,6 +991,7 @@
         "SkillTest": "Skill Test",
         "SpellCastingTest": "Spellcasting",
         "SuccessTest": "Success Test",
+        "SummonSpiritTest": "Summon Spirit",
         "SuppressionDefenseTest": "Suppression Defense",
         "ThrownAttackTest": "Thrown Weapon Attack"
     },

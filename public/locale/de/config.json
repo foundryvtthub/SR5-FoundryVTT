@@ -988,6 +988,7 @@
                 "MeleeAttackTest": "Nahkampf Angriff",
                 "NaturalRecoveryPhysicalTest": "Natürliche Genesung Körperlich",
                 "NaturalRecoveryStunTest": "Natürliche Genesung Geistig",
+                "OpposedSummonSpiritTest": "Widerstehe Beschwörung",
                 "OpposedTest": "Vergleichsprobe",
                 "PhysicalDefenseTest": "Physische Verteidigung",
                 "PhysicalResistTest": "Physischer Schadenswiderstand",
@@ -996,6 +997,7 @@
                 "SkillTest": "Fertigkeitenprobe",
                 "SpellcastingTest": "Spruchzauberei",
                 "SuccessTest": "Erfolgsprobe",
+                "SummonSpiritTest": "Geist beschwören",
                 "SupressionDefenseTest": "Unterdrückungsfeuer Verteidigung",
                 "ThrownAttackTest": "Wurfwaffen Angriff"
         },
