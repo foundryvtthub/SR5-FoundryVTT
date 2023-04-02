@@ -901,6 +901,7 @@
                 "Bound": "Gebunden",
                 "Force": "Kraft",
                 "Services": "Dienste",
+                "Summoner": "Beschwörer",
                 "Type": "Typ",
                 "Types": {
                         "Air": "Luft",
@@ -976,6 +977,10 @@
         "SR5.Temporary": "Temporär",
         "SR5.TemporaryModifiers": "Temporäre Modifikatoren",
         "SR5.Test": "Probe",
+        "SR5.TestResults": {
+                "SpiritSummonFailure": "Geist geflohen!",
+                "SpiritSummonSuccess": "Geist beschworen!"
+        },
         "SR5.Tests": {
                 "AttributeOnlyTest": "Attributsprobe",
                 "CombatSpellDefenseTest": "Kampfzauber Verteidigung",
@@ -1063,6 +1068,9 @@
                 },
                 "SituationalModifier": {
                         "Recoil": "Anzahl abgefeuerter Kugeln"
+                },
+                "SummoningTest": {
+                        "DragOnCanvas": "Ziehe Geist auf Karte"
                 }
         },
         "SR5.Top": "Oberseite",

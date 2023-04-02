@@ -3,6 +3,8 @@ import { DataDefaults } from "../data/DataDefaults";
 import { SuccessTest, SuccessTestData } from "./SuccessTest";
 import { PartsList } from '../parts/PartsList';
 import { SpellcastingRules } from '../rules/SpellcastingRules';
+import { DrainRules } from '../rules/DrainRules';
+import { ConjuringRules } from '../rules/ConjuringRules';
 
 
 interface SummonSpiritTestData extends SuccessTestData {
@@ -62,6 +64,13 @@ export class SummonSpiritTest extends SuccessTest {
     }
 
     /**
+     * Drain test is configured here but will be executed within the opposing tests context.
+     */
+    get autoExecuteFollowupTest() {
+        return false;
+    }
+
+    /**
      * Skill + Attribute [Limit] as defined in SR5#300 'Attempt summoning'
      * 
      * Limit 'force' is a dynamic test value, so it's missing here as it can't be taken from actor values.
@@ -90,5 +99,18 @@ export class SummonSpiritTest extends SuccessTest {
             this.data.limit.mod,
             'SR5.Force',
             SpellcastingRules.calculateLimit(force));
+    }
+
+    /**
+     * Derive the actual drain damage from spellcasting values.
+     * 
+     * NOTE: This will be called by the opposing test via a follow up test action.
+     */
+    calcDrainDamage(opposingHits: number) {
+        if (!this.actor) return DataDefaults.damageData();
+
+        const magic = this.actor.getAttribute('magic').value;
+        const force = this.data.force;
+        this.data.drainDamage = ConjuringRules.calcDrainDamage(opposingHits, force, magic);
     }
 }

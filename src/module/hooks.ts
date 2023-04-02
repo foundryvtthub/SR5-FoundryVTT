@@ -53,6 +53,7 @@ import { registerSystemKeybindings } from './keybindings';
 import { SkillTest } from './tests/SkillTest';
 
 import {canvasInit} from './canvas';
+import { ActionFollowupFlow } from './item/flows/ActionFollowupFlow';
 
 // Redeclare SR5config as a global as foundry-vtt-types CONFIG with SR5 property causes issues.
 export const SR5CONFIG = SR5;
@@ -472,11 +473,13 @@ ___________________
     static async chatMessageListeners(message: ChatMessage, html, data) {
         await SuccessTest.chatMessageListeners(message, html, data);
         await OpposedTest.chatMessageListeners(message, html, data);
+        await ActionFollowupFlow.chatMessageListeners(message, html, data);
     }
 
     static async chatLogListeners(chatLog: ChatLog, html, data) {
         await SuccessTest.chatLogListeners(chatLog, html, data);
         await OpposedTest.chatLogListeners(chatLog, html, data);
+        await ActionFollowupFlow.chatLogListeners(chatLog, html, data);
     }
 
 }

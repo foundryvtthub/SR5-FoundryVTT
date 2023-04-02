@@ -279,7 +279,7 @@ export const TestCreator = {
         if (!test.actor) return console.error(`Shadowrun 5e | Test doesn't have a populated actor document`);
 
         // @ts-ignore // TODO: Type merging
-        const testCls = TestCreator._getTestClass( test.data.action.followed.test);
+        const testCls = TestCreator._getTestClass(test.data.action.followed.test);
         if (!testCls) return console.error(`Shadowrun 5e | A ${test.constructor.name} has a unregistered follow up test configured`, this);
 
         const data = TestCreator._minimalTestData();

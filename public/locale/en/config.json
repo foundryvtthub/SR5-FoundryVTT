@@ -895,6 +895,7 @@
         "Bound": "Bound",
         "Force": "Force",
         "Services": "Services",
+        "Summoner": "Summoner",
         "Type": "Type",
         "Types": {
             "Air": "Air",
@@ -970,6 +971,10 @@
     "SR5.Temporary": "Temporary",
     "SR5.TemporaryModifiers": "Temporary Modifiers",
     "SR5.Test": "Test",
+    "SR5.TestResults": {
+        "SpiritSummonFailure": "Spirit fled!",
+        "SpiritSummonSuccess": "Spirit summoned!"
+    },
     "SR5.Tests": {
         "AttributeOnlyTest": "Attribute-Only Test",
         "CombatSpellDefenseTest": "Combat Spell Defense",
@@ -982,7 +987,7 @@
         "MeleeAttackTest": "Melee Weapon Attack",
         "NaturalRecoveryPhysicalTest": "Natural Recovery Physical",
         "NaturalRecoveryStunTest": "Natural Recovery Stun",
-        "OpposedSummonSpiritTest": "Opposing Summoning",
+        "OpposedSummonSpiritTest": "Oppose Summoning",
         "OpposedTest": "Opposed Test",
         "PhysicalDefenseTest": "Physical Defense",
         "PhysicalResistTest": "Physical Damage Resist",
@@ -1057,6 +1062,9 @@
         },
         "SituationalModifier": {
             "Recoil": "Amount of bullets fired"
+        },
+        "SummoningTest": {
+            "DragOnCanvas": "Drag spirit on canvas"
         }
     },
     "SR5.Top": "Top",

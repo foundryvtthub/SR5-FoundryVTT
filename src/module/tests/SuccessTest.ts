@@ -813,7 +813,7 @@ export class SuccessTest {
      * Helper to check if the current test state is critically glitched.
      */
     get criticalGlitched(): boolean {
-        return TestRules.criticalGlitched(this.success, this.glitched);
+        return TestRules.criticalGlitched(this.hits.value, this.glitched);
     }
 
     /**
@@ -1272,7 +1272,9 @@ export class SuccessTest {
             await this.afterFailure();
         }
 
-        await this.executeFollowUpTest();
+        if (this.autoExecuteFollowupTest) {
+            await this.executeFollowUpTest();
+        }
 
         if (this.extended) {
             await this.executeAsExtended();
@@ -1290,6 +1292,16 @@ export class SuccessTest {
      * @override
      */
     async afterFailure() {}
+
+    /**
+     * Allow a test to determine if it's follow up tests should auto cast after test completion.
+     * 
+     * This could be set to false to allow for tests to NOT have an immediate auto cast, due to 
+     * current user casting and the user casting the follow differing.
+     */
+    get autoExecuteFollowupTest() {
+        return true;
+    }
 
     /**
      * Depending on the action configuration execute a followup test.
@@ -1442,6 +1454,7 @@ export class SuccessTest {
             },
             item: this.item,
             opposedActions: this._prepareOpposedActionsTemplateData(),
+            followupActions: this._prepareFollowupActionsTemplateData(),
             resultActions: this._prepareResultActionsTemplateData(),
             previewTemplate: this._canPlaceBlastTemplate,
             showDescription: this._canShowDescription,
@@ -1510,6 +1523,16 @@ export class SuccessTest {
         }
 
         return [action]
+    }
+
+    /**
+     * Prepare followup actions a test allows. These are actions
+     * meant to be taken following completion of this test.
+     */
+    _prepareFollowupActionsTemplateData(): Shadowrun.FollowupAction[] {
+        const testCls = TestCreator._getTestClass(this.data.action.followed.test);
+        if (!testCls) return [];
+        return [{label: testCls.label}]
     }
 
     /**
@@ -1650,7 +1673,6 @@ export class SuccessTest {
     static async _castTestAction(event) {
         event.preventDefault();
 
-        const showDialog = !TestCreator.shouldHideDialog(event);
         const element = $(event.currentTarget);
         // Grab item uuid or fallback to empty string for foundry
         const uuid = element.data('uuid') ?? '';

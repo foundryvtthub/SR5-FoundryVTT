@@ -1,8 +1,12 @@
 import { SR5 } from '../config';
+import { DataDefaults } from '../data/DataDefaults';
 import { PartsList } from '../parts/PartsList';
+import { ConjuringRules } from '../rules/ConjuringRules';
+import { DrainTest } from './DrainTest';
 import { OpposedTest, OpposedTestData } from './OpposedTest';
 import { TestDocuments, TestOptions } from './SuccessTest';
 import { SummonSpiritTest } from './SummonSpiritTest';
+import { TestCreator } from './TestCreator';
 
 
 interface OpposedSummonSpiritTestData extends OpposedTestData {
@@ -43,6 +47,33 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         return data;
     }
 
+    get _chatMessageTemplate(): string {
+        return 'systems/shadowrun5e/dist/templates/rolls/opposed-actor-creator-message.html'
+    }
+
+    /**
+     * The order of summoning a spirit goes:
+     * - Summoning it
+     * - it resisting your summoning
+     * - the summoner resists the drain based on the spirits results
+     */
+    _prepareFollowupActionsTemplateData() {
+        const actions = super._prepareFollowupActionsTemplateData();
+
+        actions.push({label: 'SR5.Tests.DrainTest'});
+
+        return actions;
+    }
+
+    get autoExecuteFollowupTest() {
+        return false;
+    }
+
+    async executeFollowUpTest() {
+        this.against.calcDrainDamage(this.hits.value);
+        this.against.executeFollowUpTest();
+    }
+
     async populateDocuments() {
         await this.createSummonedSpirit();
         if (!this.data.summonedSpiritUuid) return;
@@ -58,35 +89,50 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     }
 
     /**
-     * As soon as a hit has been reached, create the spirit actor with the necessary force.
+     * A failure for the spirit is a success for the summoner.
      */
     async processFailure() {
         this.deriveSpiritServices();
         await this.finalizeSummonedSpirit();
     }
 
+    /**
+     * A success of the spirit is a failure for the summoner.
+     */
     async processSuccess() {
         await this._cleanupAfterExecutionCancel();
+    }
+
+    get successLabel(): string {
+        return 'SR5.TestResults.SpiritSummonFailure';
+    }
+
+    get failureLabel(): string {
+        return 'SR5.TestResults.SpiritSummonSuccess';
     }
 
     /**
      * #TODO: Use ConjuringRules or something...
      */
     deriveSpiritServices() {
-        this.data.services = Math.max(this.against.hits.value - this.hits.value, 0);
+        this.data.services = ConjuringRules.spiritServices(this.against.hits.value, this.hits.value);
     }
 
+    /**
+     * After successfully summoning, enhance the existing spirit actor.
+     */
     async finalizeSummonedSpirit() {
         if (!this.actor) return;
 
-        const summoner = this.against.actor as Actor;
-        
+        const summoner = this.against.actor as Actor;        
 
         const updateData = {
             'system.services': this.data.services,
             'system.summonerUuid': summoner.uuid
         }
 
+        // Set permissions for all users using the summoner as main character.
+        // #TODO: Add a setting to define that this should be done and what permission it should be done with.
         const users = game.users?.filter(user => user.character?.uuid === summoner.uuid);
         //@ts-ignore 
         if (users) {
@@ -116,7 +162,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         const force = this.against.data.force;
         const system = { force, spiritType };
 
-        const actor = await Actor.create({ name, type: 'spirit', system });
+        const actor = await Actor.create({ name, type: 'spirit', system, prototypeToken: {actorLink: true} });
 
         if (!actor) return console.error('Shadowrun 5e | Could not create the summoned spirit actor');
 
