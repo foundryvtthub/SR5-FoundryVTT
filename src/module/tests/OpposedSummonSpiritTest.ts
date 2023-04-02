@@ -58,10 +58,12 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * - the summoner resists the drain based on the spirits results
      */
     _prepareFollowupActionsTemplateData() {
-        const actions = super._prepareFollowupActionsTemplateData();
+        const actions: Shadowrun.FollowupAction[] = [];
 
-        actions.push({label: 'SR5.Tests.DrainTest'});
+        const testCls = TestCreator._getTestClass(this.against.data.action.followed.test);
+        if (!testCls) return actions;
 
+        actions.push({label: testCls.label});
         return actions;
     }
 
@@ -70,7 +72,8 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     }
 
     async executeFollowUpTest() {
-        this.against.calcDrainDamage(this.hits.value);
+        this.against.calcDrain(this.hits.value);
+        await this.against.saveToMessage();
         this.against.executeFollowUpTest();
     }
 

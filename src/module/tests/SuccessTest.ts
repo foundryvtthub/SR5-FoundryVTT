@@ -1425,6 +1425,7 @@ export class SuccessTest {
 
         // Store message id for future use.
         this.data.messageUuid = message.uuid;
+        await this.saveToMessage();
 
         await this.rollDiceSoNice();
 
@@ -1594,7 +1595,7 @@ export class SuccessTest {
             // Manually build flag data to give renderChatMessage hook flag access.
             // This test data is needed for all subsequent testing based on this chat messages.
             flags: {
-                [SYSTEM_NAME]: {[FLAGS.Test]: this.toJSON()},
+                // [SYSTEM_NAME]: {[FLAGS.Test]: this.toJSON()},
                 'core.canPopout': true
             },
             sound: CONFIG.sounds.dice,            
@@ -1605,6 +1606,18 @@ export class SuccessTest {
         ChatMessage.applyRollMode(messageData, this._rollMode);
 
         return messageData;
+    }
+
+    /**
+     * Save this test to the given message uuid
+     * @param uuid 
+     */
+    async saveToMessage(uuid: string|undefined=this.data.messageUuid) {
+        if (!uuid) return;
+
+        const message = await fromUuid(uuid);
+        
+        await message?.setFlag(SYSTEM_NAME, FLAGS.Test, this.toJSON());
     }
 
     /**

@@ -106,6 +106,11 @@ export class SummonSpiritTest extends SuccessTest {
      * 
      * NOTE: This will be called by the opposing test via a follow up test action.
      */
+    calcDrain(opposingHits: number) {
+        this.data.drain = ConjuringRules.summoningDrainValue(opposingHits);
+        this.calcDrainDamage(opposingHits);
+    }
+
     calcDrainDamage(opposingHits: number) {
         if (!this.actor) return DataDefaults.damageData();
 
