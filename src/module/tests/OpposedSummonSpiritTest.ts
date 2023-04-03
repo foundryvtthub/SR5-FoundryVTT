@@ -12,16 +12,16 @@ import { TestCreator } from './TestCreator';
 interface OpposedSummonSpiritTestData extends OpposedTestData {
     // The created spirit actors FoundryVTT uuid
     summonedSpiritUuid: null | string
-    services: number
 }
 
 /**
- * The opposed test of a summoned spirit.
+ * The opposed test of summoning a spirit.
+ * 
+ * The summoner is the active actor and the spirit is the opposed actor.
  */
 export class OpposedSummonSpiritTest extends OpposedTest {
     data: OpposedSummonSpiritTestData
     public against: SummonSpiritTest
-
 
     constructor(data, documents?: TestDocuments, options?: TestOptions) {
         // Due to summoning, the active actor for this test will be created during execution.
@@ -34,6 +34,9 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         this._assertCorrectAgainst();
     }
 
+    /**
+     * Prohibit opposing any other test than SummonSpiritTest
+     */
     _assertCorrectAgainst() {
         if (this.against.type !== 'SummonSpiritTest') throw new Error(`${this.constructor.name} can only oppose SummonSpiritTest but is opposing a ${this.against.type}`);
     }
@@ -67,16 +70,26 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         return actions;
     }
 
+    /**
+     * When summoning the opposing spirit test triggers the DrainTest from summoning.
+     * Since we can expect this test be within the GM context, we can't auto cast DrainTest.
+     */
     get autoExecuteFollowupTest() {
         return false;
     }
 
+    /**
+     * Calculate drain and execute the actives test followup (should be drain test)
+     */
     async executeFollowUpTest() {
         this.against.calcDrain(this.hits.value);
         await this.against.saveToMessage();
         this.against.executeFollowUpTest();
     }
 
+    /**
+     * To have an opposing actor, that's not on the map already, create the spirit actor.
+     */
     async populateDocuments() {
         await this.createSummonedSpirit();
         if (!this.data.summonedSpiritUuid) return;
@@ -86,6 +99,9 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         await super.populateDocuments();
     }
 
+    /**
+     * Other than force there shouldn't be any other pool parts.
+     */
     applyPoolModifiers() {
         // NOTE: We don't have an actor, therefore don't need to call document modifiers.
         PartsList.AddUniquePart(this.data.pool.mod, 'SR5.Force', this.against.data.force);
@@ -95,8 +111,11 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * A failure for the spirit is a success for the summoner.
      */
     async processFailure() {
-        this.deriveSpiritServices();
         await this.finalizeSummonedSpirit();
+        
+        // Finalize the original test values.
+        this.against.calcDrain(this.hits.value);
+        await this.against.saveToMessage();
     }
 
     /**
@@ -115,14 +134,18 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     }
 
     /**
-     * #TODO: Use ConjuringRules or something...
+     * Derive the amount of services the created actor spirit will have.
+     * 
+     * Should be called after a successful summoning.
      */
     deriveSpiritServices() {
-        this.data.services = ConjuringRules.spiritServices(this.against.hits.value, this.hits.value);
+        return ConjuringRules.spiritServices(this.against.hits.value, this.hits.value);
     }
 
     /**
-     * After successfully summoning, enhance the existing spirit actor.
+     * Finalize the existing spirit actor with context around it's summoning.
+     * 
+     * This should be called as the last step in summoning.
      */
     async finalizeSummonedSpirit() {
         if (!this.actor) return;
@@ -130,24 +153,34 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         const summoner = this.against.actor as Actor;        
 
         const updateData = {
-            'system.services': this.data.services,
+            'system.services': this.deriveSpiritServices(),
             'system.summonerUuid': summoner.uuid
         }
 
-        // Set permissions for all users using the summoner as main character.
-        // #TODO: Add a setting to define that this should be done and what permission it should be done with.
-        const users = game.users?.filter(user => user.character?.uuid === summoner.uuid);
-        //@ts-ignore 
-        if (users) {
-            const ownership = {};
-            users.forEach(user => {
-                if (user.isGM) return;
-                ownership[user.id] = CONST.DOCUMENT_PERMISSION_LEVELS.OWNER;
-            })
-            updateData['ownership'] = ownership
-        }
+        this._addOwnershipToUpdateData(updateData);
 
         await this.actor.update(updateData);
+    }
+
+    /**
+     * Give all users with the summoning actor permissions of the created spirit actor.
+     * 
+     * @param updateData The update data to add the permission to, that's applied to the spirit actor. 
+     */
+    _addOwnershipToUpdateData(updateData: object) {
+        const summoner = this.against.actor as Actor;
+
+        // Set permissions for all users using the summoner as main character.
+        const users = game.users?.filter(user => user.character?.uuid === summoner.uuid);
+        if (!users) return;
+
+        const ownership = {};
+        users.forEach(user => {
+            if (user.isGM) return;
+            // #TODO: Add a setting to define that this should be done and what permission it should be done with.
+            ownership[user.id] = CONST.DOCUMENT_PERMISSION_LEVELS.OWNER;
+        })
+        updateData['ownership'] = ownership
     }
 
     /**
