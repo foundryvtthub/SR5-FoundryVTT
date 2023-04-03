@@ -1,8 +1,6 @@
 import { SR5 } from '../config';
-import { DataDefaults } from '../data/DataDefaults';
 import { PartsList } from '../parts/PartsList';
 import { ConjuringRules } from '../rules/ConjuringRules';
-import { DrainTest } from './DrainTest';
 import { OpposedTest, OpposedTestData } from './OpposedTest';
 import { TestDocuments, TestOptions } from './SuccessTest';
 import { SummonSpiritTest } from './SummonSpiritTest';
