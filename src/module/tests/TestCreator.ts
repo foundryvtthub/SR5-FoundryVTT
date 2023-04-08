@@ -324,6 +324,7 @@ export const TestCreator = {
      * @param testName A Test class constructor name registered as a test.
      */
     _getTestClass: function(testName: string): any | undefined {
+        if (!testName) return;
         //@ts-ignore
         if (!game.shadowrun5e.tests.hasOwnProperty(testName)) { //@ts-ignore
             console.error(`Shadowrun 5e | Tried getting a Test Class ${testName}, which isn't registered in: `, game.shadowrun5e.tests);
