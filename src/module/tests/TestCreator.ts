@@ -368,6 +368,7 @@ export const TestCreator = {
         data.action = action;
 
         const pool = new PartsList<number>(data.pool.mod);
+        const rollData = actor.getRollData();
 
         // Prepare pool values.
         if (action.skill) {
@@ -386,7 +387,7 @@ export const TestCreator = {
         }
         // The first attribute is either used for skill or attribute only tests.
         if (action.attribute) {
-            const attribute = actor.getAttribute(action.attribute, );
+            const attribute = actor.getAttribute(action.attribute, {useAsSystem: rollData});
             // Don't use addUniquePart as one attribute might be used twice.
             if (attribute) pool.addPart(attribute.label, attribute.value);
             // Apply matrix modifiers, when applicable

@@ -27,10 +27,25 @@ import {RecoveryRules} from "../rules/RecoveryRules";
 import { CombatRules } from '../rules/CombatRules';
 
 
+/**
+ * When accessing an actor documents system data, these options allow to alter what
+ * data is used.
+ */
 interface ValueOptions {
-    // Should value sources be used or only local values.
-    source?: boolean
+    // Instead of local system data use roll data. This might apply different sources
+    // for some values.
+    useRollData?: boolean
+    // Use this data instead of system or roll data. This will allow the caller to control
+    // from where and how data is taken.
+    useAsSystem?: Shadowrun.ShadowrunActorDataData
 }
+
+interface SkillOptions extends ValueOptions {
+    // Retrieve skill by it's displayed label instead of name.
+    byLabel?: boolean
+}
+
+
 /**
  * The general Shadowrun actor implementation, which currently handles all actor types.
  *
@@ -66,7 +81,6 @@ export class SR5Actor extends Actor {
 
     // Add v10 type helper
     system: Shadowrun.ShadowrunActorDataData; // TODO: foundry-vtt-types v10
-    systemSourced: Shadowrun.ShadowrunActorDataData;
 
     // Holds all operations related to this actors inventory.
     inventory: InventoryFlow;
@@ -372,16 +386,21 @@ export class SR5Actor extends Actor {
     }
 
     /**
-     * Return 
-     * @param damage 
-     * @returns 
+     * Derive the actors armor for general use and during damage application.
+     * 
+     * @param damage Optional damage data to apply to the armor.
+     * @param options See ValueOptions for details.
+     * 
+     * @returns Either the actors armor or the armor after applying the damage.
      */
-    getArmor(damage?:Shadowrun.DamageData): Shadowrun.ActorArmorData {
+    getArmor(damage?:Shadowrun.DamageData, options: ValueOptions = {}): Shadowrun.ActorArmorData {
+        const system = this._getSystemValues(options);
+
         // Prepare base armor data.
         //@ts-ignore // TODO: foundry-vtt-types v10
-        const armor = "armor" in this.system ? 
+        const armor = "armor" in system ? 
             //@ts-ignore // TODO: foundry-vtt-types v10
-            foundry.utils.duplicate(this.system.armor) : 
+            foundry.utils.duplicate(system.armor) : 
             DataDefaults.actorArmorData();
         // Prepare damage to apply to armor.
         damage = damage || DataDefaults.damageData();
@@ -467,12 +486,46 @@ export class SR5Actor extends Actor {
     }
 
     /**
-     * Access all actor attributes
+     * Most actors will access their system values directly, however sometimes those
+     * values must be altered in different ways depending on the context of when they're accessed.
      * 
-     * @param options.source When true, this will use value sources instead of only accessing local values.
+     * This is done by either providing custom data to use or by using an actors roll data.
+     * 
+     * General rule of thumb: When displaying actor values, local system should be used.
+     * During testing, roll data should be used.
+     * During unittest or special use cases, you can provide custom data.
+     * 
+     * @param options See ValueOptions documentation.
+     */
+    _getSystemValues(options: ValueOptions={}): Shadowrun.ShadowrunActorDataData {
+        if (options.useAsSystem) return options.useAsSystem;
+        if (options.useRollData) return this.getRollData();
+        return this.system;
+    }
+
+    /**
+     * Vehicle actors provide vehicle stats that behave like attributes but are stored
+     * separately.
+     * 
+     * @param options See ValueOptions documentation.
+     * @returns 
+     */
+    getVehicleStats(options: ValueOptions={}): Shadowrun.VehicleStats | undefined {
+        const system = this._getSystemValues(options);
+        //@ts-ignore // TODO: foundry-vtt-types v10
+        if (this.isVehicle() && "vehicle_stats" in system) {
+            //@ts-ignore // TODO: foundry-vtt-types v10
+            return system.vehicle_stats;
+        }
+    }
+
+    /**
+     * Return the actors attributes from local or different sources.
+     * 
+     * @param options See ValueOptions documentation.
      */
     getAttributes(options: ValueOptions={}): Shadowrun.Attributes {
-        const system = options.source ? this.getRollData() : this.system;
+        const system = this._getSystemValues(options);
         return system.attributes;
     }
 
@@ -495,9 +548,9 @@ export class SR5Actor extends Actor {
         return attributes[name];
     }
 
-    getLimits(): Shadowrun.Limits {
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        return this.system.limits;
+    getLimits(options: ValueOptions = {}): Shadowrun.Limits {
+        const system = this._getSystemValues(options);
+        return system.limits;
     }
 
     getLimit(name: string): Shadowrun.LimitField {
@@ -553,10 +606,8 @@ export class SR5Actor extends Actor {
     }
 
     getVehicleTypeSkillName(): string | undefined {
-        //@ts-ignore // TODO: foundry-vtt-types v10
         if (!("vehicleType" in this.system)) return;
 
-        //@ts-ignore // TODO: foundry-vtt-types v10
         switch (this.system.vehicleType) {
             case 'air':
                 return 'pilot_aircraft';
@@ -586,14 +637,14 @@ export class SR5Actor extends Actor {
         return this.getSkills() !== undefined;
     }
 
-    getSkills(): Shadowrun.CharacterSkills {
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        return this.system.skills;
+    getSkills(options: ValueOptions = {}): Shadowrun.CharacterSkills {
+        const system = this._getSystemValues(options);
+        return system.skills;
     }
 
-    getActiveSkills(): Shadowrun.Skills {
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        return this.system.skills.active;
+    getActiveSkills(options: ValueOptions = {}): Shadowrun.Skills {
+        const skills = this.getSkills(options);
+        return skills.active;
     }
 
     /**
@@ -634,9 +685,9 @@ export class SR5Actor extends Actor {
      * Return the full pool of a skill including attribute and possible specialization bonus.
      * @param skillId The ID of the skill. Note that this can differ from what is shown in the skill list. If you're
      *                unsure about the id and want to search
-     * @param options An object to change the behaviour.
+     * @param options An object to change the behavior.
      *                The property specialization will trigger the pool value to be raised by a specialization modifier
-     *                The property byLbale will cause the param skillId to be interpreted as the shown i18n label.
+     *                The property byLabel will cause the param skillId to be interpreted as the shown i18n label.
      */
     getPool(skillId: string, options = {specialization: false, byLabel: false}): number {
         const skill = options.byLabel ? this.getSkillByLabel(skillId) : this.getSkill(skillId);
@@ -670,12 +721,11 @@ export class SR5Actor extends Actor {
      * @param id Either the searched id, name or translated label of a skill
      * @param options .byLabel when true search will try to match given skillId with the translated label
      */
-    getSkill(id: string, options = {byLabel: false}): Shadowrun.SkillField | undefined {
+    getSkill(id: string, options: SkillOptions = {byLabel: false}): Shadowrun.SkillField | undefined {
         if (options.byLabel)
-            return this.getSkillByLabel(id);
+            return this.getSkillByLabel(id, options);
 
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        const {skills} = this.system;
+        const skills = this.getSkills(options);
 
         // Find skill by direct id to key matching.
         if (skills.active.hasOwnProperty(id)) {
@@ -699,15 +749,15 @@ export class SR5Actor extends Actor {
      * Search all skills for a matching i18n translation label.
      * NOTE: You should use getSkill if you have the skillId ready. Only use this for ease of use!
      *
-     * @param searchedFor The translated output of either the skill label (after localize) or name of the skill in question.
+     * @param searchedFor The translated output of either the skill label (after localization) or name of the skill in question.
      * @return The first skill found with a matching translation or name.
      */
-    getSkillByLabel(searchedFor: string): Shadowrun.SkillField | undefined {
+    getSkillByLabel(searchedFor: string, options: ValueOptions = {}): Shadowrun.SkillField | undefined {
         if (!searchedFor) return;
 
         const possibleMatch = (skill: Shadowrun.SkillField): string => skill.label ? game.i18n.localize(skill.label) : skill.name;
 
-        const skills = this.getSkills();
+        const skills = this.getSkills(options);
 
         for (const [id, skill] of Object.entries(skills.active)) {
             if (searchedFor === possibleMatch(skill))
@@ -1603,14 +1653,6 @@ export class SR5Actor extends Actor {
         }
     }
 
-    getVehicleStats(): Shadowrun.VehicleStats | undefined {
-        //@ts-ignore // TODO: foundry-vtt-types v10
-        if (this.isVehicle() && "vehicle_stats" in this.system) {
-            //@ts-ignore // TODO: foundry-vtt-types v10
-            return this.system.vehicle_stats;
-        }
-    }
-
     /** Add another actor as the driver of a vehicle to allow for their values to be used in testing.
      *
      * @param uuid An actors id. Should be a character able to drive a vehicle
@@ -2016,15 +2058,41 @@ export class SR5Actor extends Actor {
         if (updateData) await this.update(updateData);
     }
 
-    get valueSources() {
-        if (!this.isVehicle()) return {}
+    /**
+     * When accessing actors data with alternative values sources, use this method
+     * to retrieve what to apply depending on the actor used.
+     */
+    get valueSources(): Record<string, string> {
+        console.debug(`Shadowrun 5e | Getting value sources for ${this.name} (${this.type})`);
 
-        return {
-            'attributes.intuition': '@driver.attributes.intuition'
-        }
+        switch (this.type) {
+            case 'vehicle':
+                const vehicle = this.asVehicle();
+                // While a vehicle might be set to relevant control mode, the driver might be missing.
+                if (!vehicle || !this.hasDriver) return {};
+                
+                // Vehicles have a driver, which is the one that controls the vehicle.
+                switch (vehicle.system.controlMode) {
+                    case 'manual':
+                    case 'remote':
+                    case 'rigger':
+                        return {
+                            'attributes.intuition': '@driver.attributes.intuition',
+                            'attributes.logic': '@driver.attributes.intuition',
+                        }
+
+                    default:
+                        return {}
+                }
+                
+            default:
+                return {}
+        }        
     }
 
     getValueSource(source: string) {
+        console.debug(`Shadowrun 5e | Resolving a single value source ${source} for ${this.name} (${this.type})`);
+
         if (!game.actors) return console.error('Actors Collection not ready yet');
         const segments = source.split('.');
         if (!segments.length) throw new Error("An empty value source couldn't be resolved");
@@ -2042,7 +2110,7 @@ export class SR5Actor extends Actor {
 
         if (!provider) return console.error('First source value segment can not be resolved as an systemData path');
 
-        // TODO: Add different provider types ({uuid: asd} / 'asd')
+        // TODO: Currently vehicles driver is stored as an collection id, should use uuid for greater flexibility.
         const actor = game.actors.get(provider);
         if (!actor) return console.error("Provider didn't point to an existing document", provider);
 
@@ -2052,10 +2120,15 @@ export class SR5Actor extends Actor {
     }
 
     /**
+     * Using this actors value sources, alter roll data to swap out different values.
      * 
+     * #TODO: Documentation
+     * @param rollData 
+     * @returns 
      */
-    getRollData(): Shadowrun.ShadowrunActorDataData {
-        const rollData = super.getRollData() as Shadowrun.ShadowrunActorDataData;
+    _applyValueSources(rollData: Shadowrun.ShadowrunActorDataData): Shadowrun.ShadowrunActorDataData {
+        console.debug(`Shadowrun 5e | Applying value sources for ${this.name} (${this.type})`);
+
         const sources = this.valueSources;
 
         for (const [value, source] of Object.entries(sources)) {
@@ -2067,5 +2140,13 @@ export class SR5Actor extends Actor {
         }
 
         return rollData;
+    }
+
+    /**
+     * #TODO: Documentation
+     */
+    getRollData(): Shadowrun.ShadowrunActorDataData {
+        const rollData = super.getRollData() as Shadowrun.ShadowrunActorDataData;
+        return this._applyValueSources(rollData);
     }
 }
