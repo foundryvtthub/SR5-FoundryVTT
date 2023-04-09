@@ -115,9 +115,6 @@ export interface SuccessTestMessageData {
  * This class handles all Shadowrun 5 rules surround success tests,
  * except for the dice rolling itself as well the flow handling of multi roll tests.
  *
- * TODO: Check if Actor.getRollData() can be used to better implement this
- * TODO: Add unittesting.
- * TODO: Remove edge related data from options. Only use options for general test related handling, not shadowrun interal stuff.
  */
 export class SuccessTest {
     public data: SuccessTestData;
