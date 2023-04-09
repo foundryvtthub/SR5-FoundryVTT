@@ -287,10 +287,7 @@ export class SR5Item extends Item {
             // Item.prepareData is called once (first) with an empty SR5Actor instance without .data and once (second) with .data.
             if (this.actor?.system) {
                 action.damage.source = {
-                    actorId: this.actor.id as string,
-                    itemId: this.id as string,
-                    itemName: this.name as string,
-                    itemType: this.type
+                    uuid: this.uuid
                 };
             }
 

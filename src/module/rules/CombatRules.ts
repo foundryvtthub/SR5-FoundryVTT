@@ -202,7 +202,8 @@ export class CombatRules {
             updatedDamage.type.value = 'physical';
         }
 
-        const damageSourceItem = Helpers.findDamageSource(damage);
+        //@ts-ignore
+        const damageSourceItem = fromUuidSync(damage.source?.uuid);
         if (damageSourceItem && damageSourceItem.isDirectCombatSpell) {
             // Damage from direct combat spells is never converted
             return updatedDamage;

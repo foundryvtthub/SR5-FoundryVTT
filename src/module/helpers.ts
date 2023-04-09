@@ -13,7 +13,7 @@ import TargetedDocument = Shadowrun.TargetedDocument;
 import { SR5Actor } from "./actor/SR5Actor";
 import { DeleteConfirmationDialog } from "./apps/dialogs/DeleteConfirmationDialog";
 import { SR5 } from "./config";
-import { DEFAULT_ID_LENGTH, FLAGS, LENGTH_UNIT, LENGTH_UNIT_TO_METERS_MULTIPLIERS, SR, SYSTEM_NAME } from "./constants";
+import { DEFAULT_ID_LENGTH, FLAGS, LENGTH_UNIT, LENGTH_UNIT_TO_METERS_MULTIPLIERS, SYSTEM_NAME } from "./constants";
 import { DataDefaults } from "./data/DataDefaults";
 import { SR5Item } from './item/SR5Item';
 import { PartsList } from './parts/PartsList';
@@ -587,56 +587,11 @@ export class Helpers {
 
         if (sourceItem && sourceItem.actor) {
             damage.source = {
-                actorId: sourceItem.actor.id as string,
-                itemType: sourceItem.type,
-                itemId: sourceItem.id as string,
-                itemName: sourceItem.name as string
+                uuid: sourceItem.uuid
             };
         }
 
         return damage;
-    }
-
-    /**
-     * Retrieves the item causing the damage, if there is any.
-     * This only works for embedded items at the moment
-     */
-    static findDamageSource(damageData: DamageData): SR5Item | undefined {
-        if (!game.actors) return;
-
-        if (!damageData.source) {
-            return;
-        }
-
-        const actorId = damageData.source.actorId;
-        const actorSource = game.actors.get(actorId)
-
-        if (!actorSource) {
-            return;
-        }
-
-        // First search the actor itself for the item
-        const itemId = damageData.source.itemId;
-        const actorItem = actorSource.items.get(itemId);
-        if (actorItem) {
-            return actorItem;
-        }
-
-        // If we did not find anything on the actor, search the active tokens (the item might only exist on a non linked token)
-        // This will not work if we are on a different scene or the token got deleted, which is expected when you put an
-        // item on a token without linking it.
-        const tokens = actorSource.getActiveTokens();
-        let tokenItem: SR5Item | undefined;
-        tokens.forEach(token => {
-            if (!token.actor) return;
-
-            const foundItem = token.actor.items.get(itemId);
-            if (foundItem) {
-                tokenItem = foundItem as unknown as SR5Item;
-            }
-        });
-
-        return tokenItem;
     }
 
     /** Modifies given damage value and returns both original and modified damage

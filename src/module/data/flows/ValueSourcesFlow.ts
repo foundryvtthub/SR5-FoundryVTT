@@ -1,4 +1,5 @@
 import { SR5Actor } from "../../actor/SR5Actor";
+import { Helpers } from "../../helpers";
 import { SR5Item } from "../../item/SR5Item";
 
 /**
@@ -78,7 +79,7 @@ export const ValueSourcesFlow = {
      */
     _injectSourceIntoValue(value: any, source: string, document: SR5Actor|SR5Item): any {
         if (typeof(value) !== 'object' || Array.isArray(value)) return value;
-
+        if (!Helpers.objectHasKeys(value, ['mod', 'value', 'base'])) return value;
         value = foundry.utils.duplicate(value);
         //#TODO: Add ValueData typing
         value.source = {uuid: document.uuid, source};

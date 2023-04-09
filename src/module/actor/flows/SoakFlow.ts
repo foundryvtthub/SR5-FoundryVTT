@@ -1,9 +1,8 @@
 import {SR5Actor} from "../SR5Actor";
-import {SR5Item} from '../../item/SR5Item';
 import DamageData = Shadowrun.DamageData;
 
 export class SoakFlow {
-    knocksDown(damage: DamageData, actor:SR5Actor) {
+    knocksDown(damage: DamageData, actor: SR5Actor) {
         // TODO: SR5 195 Called Shot Knock Down (Melee Only), requires attacker STR and actually announcing that called shot.
         const gelRoundsEffect = this.isDamageFromGelRounds(damage) ? -2 : 0;  // SR5 434
         const impactDispersionEffect = this.isDamageFromImpactDispersion(damage) ? -2 : 0  // FA 52
@@ -18,18 +17,15 @@ export class SoakFlow {
     }
 
     isDamageFromGelRounds(damage: DamageData) {
-        if (damage.source && damage.source.actorId && damage.source.itemId) {
-            const attacker = game.actors?.find(actor => actor.id == damage.source?.actorId);
-            if (attacker) {
-                const item = attacker.items.find(item => item.id == damage.source?.itemId) as SR5Item;
-                if (item) {
-                    return item.items
-                        .filter(mod => mod.getTechnologyData()?.equipped)
-                        .filter(tech => tech.name == game.i18n.localize("SR5.AmmoGelRounds")).length > 0;
-                }
-            }
-        }
-        return false;
+        if (!damage.source) return false;
+
+        //@ts-ignore
+        const item = fromUuidSync(damage.source.uuid);
+        if (!item) return false;
+            
+        return item.items
+            .filter(mod => mod.getTechnologyData()?.equipped)
+            .filter(tech => tech.name == game.i18n.localize("SR5.AmmoGelRounds")).length > 0;
     }
 
     isDamageFromImpactDispersion(damage: DamageData) {

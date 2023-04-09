@@ -75,14 +75,15 @@ export class PartsList<TType> {
         this._list = actualParts;
     }
 
-    addPart(name: string, value: TType): void {
+    addPart(name: string, value: TType, source?: Shadowrun.ValueSource): void {
         this._list.push({
             name,
             value,
+            source
         });
     }
 
-    addUniquePart(name: string, value?: TType, overwrite = true): void {
+    addUniquePart(name: string, value?: TType, overwrite = true, source?: Shadowrun.ValueSource): void {
         const index = this._list.findIndex((part) => part.name === name);
         if (index > -1) {
             // if we exist and should've overwrite, return
@@ -92,9 +93,9 @@ export class PartsList<TType> {
             // if we are passed undefined, remove the value
             if (value === undefined || value === null) return;
             // recursively go through until we no longer have a part of this name
-            this.addUniquePart(name, value);
+            this.addUniquePart(name, value, overwrite, source);
         } else if (value !== undefined) {
-            this.addPart(name, value);
+            this.addPart(name, value, source);
         } else {
             console.warn('Shadowrun 5e | PartsList cant add a none-numerical modifier.', name, value);
         }
@@ -138,9 +139,9 @@ export class PartsList<TType> {
         return parts._list;
     }
 
-    static AddUniquePart<TType>(list: ModList<TType>, name: string, value: TType, overwrite = true): ModList<TType> {
+    static AddUniquePart<TType>(list: ModList<TType>, name: string, value: TType, overwrite = true, source?: Shadowrun.ValueSource): ModList<TType> {
         const parts = new PartsList(list);
-        parts.addUniquePart(name, value, overwrite);
+        parts.addUniquePart(name, value, overwrite, source);
         return parts._list;
     }
 

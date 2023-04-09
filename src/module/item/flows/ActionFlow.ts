@@ -2,13 +2,8 @@
  * Handle all things related to the action template (template.json)
  */
 import {SR5Actor} from "../../actor/SR5Actor";
-import DamageData = Shadowrun.DamageData;
 import {Helpers} from "../../helpers";
-import FormulaOperator = Shadowrun.FormulaOperator;
 import {SR5Item} from "../SR5Item";
-import DamageSource = Shadowrun.DamageSource;
-import LimitField = Shadowrun.LimitField;
-import ValueField = Shadowrun.ValueField;
 import {PartsList} from "../../parts/PartsList";
 
 export class ActionFlow {
@@ -19,7 +14,7 @@ export class ActionFlow {
      * @param actor The actor to use should a dynamic calculation be needed.
      * @param item
      */
-    static calcDamage(damage: DamageData, actor?: SR5Actor, item?: SR5Item): DamageData {
+    static calcDamage(damage: Shadowrun.DamageData, actor?: SR5Actor, item?: SR5Item): Shadowrun.DamageData {
         // Avoid manipulation on original data, which might come from database values.
         damage = duplicate(damage);
 
@@ -68,12 +63,9 @@ export class ActionFlow {
      * @param actor The actor used to determine damage
      * @param item The item from which damage's been determined from.
      */
-    static _damageSource(actor: SR5Actor, item: SR5Item): DamageSource {
+    static _damageSource(actor: SR5Actor, item: SR5Item): Shadowrun.ValueSource {
         return {
-            actorId: actor.id || '',
-            itemId: item.id || '',
-            itemName: item.name || '',
-            itemType: item.type
+            uuid: item.uuid
         }
     }
 
@@ -84,7 +76,7 @@ export class ActionFlow {
      * 
      * @returns true, when the user configured damage contains any parts.
      */
-    static hasDamage(damage: DamageData): boolean {
+    static hasDamage(damage: Shadowrun.DamageData): boolean {
         if (damage.base !== 0) return true;
         if (damage.attribute) return true;
         if (damage.type) return true;

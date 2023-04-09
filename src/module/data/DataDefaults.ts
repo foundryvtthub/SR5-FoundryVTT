@@ -84,13 +84,7 @@ export class DataDefaults {
             },
             attribute: '',
             mod: [],
-            base_formula_operator: 'add',
-            source: {
-                actorId: '',
-                itemId: '',
-                itemType: '',
-                itemName: ''
-            }
+            base_formula_operator: 'add'
         }
         return mergeObject(data, partialDamageData) as DamageData;
     }

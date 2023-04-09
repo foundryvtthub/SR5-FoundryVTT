@@ -55,17 +55,32 @@ declare namespace Shadowrun {
     export type ModList<TType> = Array<ModListEntry<TType>>;
 
     // A modifier value with a name string in FoundryVTT label format (SR5.<>) used during ActorPrep to collect modifying values.
-    export type ModListEntry<TType> = { name: string; value: TType };
-
+    export type ModListEntry<TType> = {
+        name: string // Display name of the modifier
+        value: TType // Calculation value of the modifier
+        source?: ValueSource // The source document and value this value has been taken from.
+    }
+    
+    /**
+     * The source document and value this value has been taken from.
+     * 
+     * This is used during testing for values. See ValueSourcesFlow.
+     */
+    export interface ValueSource {
+        uuid: string // The source document
+        source?: string // The system data source key. i.e. 'attribute.body'
+    }
+    
     /**
      * A simple modifiable numerical value.
+     * 
+     * This kind of value is used in testing.
      */
     export type ValueField =
         BaseValuePair<number> &
         ModifiableValue &
         LabelField &
-        ManualModField;
-
+        ManualModField
     /**
      * A modifiable value of any type.
      */
@@ -82,6 +97,7 @@ declare namespace Shadowrun {
         mod: ModList<number>
         override?: ModListEntry<number>
         temp?: number
+        source?: ValueSource
     };
     /**
      * A modifiable value that also scales with an attribute.

@@ -18,5 +18,6 @@ declare namespace Shadowrun {
         LabelField & {
             limit?: string;
             temp?: number;
+            source?: ValueSource;
         };
 }

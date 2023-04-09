@@ -381,7 +381,7 @@ export const TestCreator = {
             // Custom skills don't have a label, but a name.
             // Legacy skill don't have a name, but have a label.
             // Your mind is like this water, my friend. When it is agitated, it becomes difficult to see. But if you allow it to settle, the answer becomes clear.
-            if (skill) pool.addUniquePart(skill.label || skill.name, SkillRules.level(skill));
+            if (skill) pool.addUniquePart(skill.label || skill.name, SkillRules.level(skill), true, skill.source);
             // TODO: Check if this is actual skill specialization and for a +2 config for it instead of MagicValue.
             if (action.spec) pool.addUniquePart('SR5.Specialization', SkillRules.SpecializationModifier);
         }
@@ -389,7 +389,7 @@ export const TestCreator = {
         if (action.attribute) {
             const attribute = actor.getAttribute(action.attribute, {useAsSystem: rollData});
             // Don't use addUniquePart as one attribute might be used twice.
-            if (attribute) pool.addPart(attribute.label, attribute.value);
+            if (attribute) pool.addPart(attribute.label, attribute.value, attribute.source);
             // Apply matrix modifiers, when applicable
             if (attribute && actor._isMatrixAttribute(action.attribute)) actor._addMatrixParts(pool, true);
         }
@@ -397,7 +397,7 @@ export const TestCreator = {
         if (!action.skill && action.attribute2) {
             const attribute = actor.getAttribute(action.attribute2);
             // Don't use addUniquePart as one attribute might be used twice.
-            if (attribute) pool.addPart(attribute.label, attribute.value);
+            if (attribute) pool.addPart(attribute.label, attribute.value, attribute.source);
             // Apply matrix modifiers, when applicable
             if (attribute && actor._isMatrixAttribute(action.attribute2)) actor._addMatrixParts(pool, true);
         }
@@ -436,7 +436,7 @@ export const TestCreator = {
             // Get the limit connected to the defined attribute.
             // NOTE: This might differ from the USED attribute...
             const limit = actor.getLimit(action.limit.attribute);
-            if (limit) data.limit.mod = PartsList.AddUniquePart(data.limit.mod, limit.label, limit.value);
+            if (limit) data.limit.mod = PartsList.AddUniquePart(data.limit.mod, limit.label, limit.value, true, limit.source);
             if (limit && actor._isMatrixAttribute(action.limit.attribute)) actor._addMatrixParts(pool, true);
         }
 
