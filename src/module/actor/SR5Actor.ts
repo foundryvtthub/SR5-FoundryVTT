@@ -797,12 +797,12 @@ export class SR5Actor extends Actor {
     /**
      * Add a new knowledge skill for a specific category.
      *
-     * Knowledge skills are stored separataly from active and language skills and have
+     * Knowledge skills are stored separately from active and language skills and have
      * some values pre-defined by their category (street, professional, ...)
      *
-     * @param category Define the knowledege skill category
+     * @param category Define the knowledge skill category
      * @param skill  Partially define the SkillField properties needed. Omitted properties will be default.
-     * @returns The id of the created knowledege skill.
+     * @returns The id of the created knowledge skill.
      */
     async addKnowledgeSkill(
         category: keyof Shadowrun.KnowledgeSkills,
@@ -810,7 +810,7 @@ export class SR5Actor extends Actor {
     ): Promise<string | undefined> {
         //@ts-ignore // prevent accidental creation for wrong categories TODO: foundry-vtt-types v10
         if (!this.system.skills.knowledge.hasOwnProperty(category)) {
-            console.error(`Shadowrun5e | Tried creating knowledge skill with unkown category ${category}`);
+            console.error(`Shadowrun5e | Tried creating knowledge skill with unknown category ${category}`);
             return;
         }
 
@@ -892,7 +892,7 @@ export class SR5Actor extends Actor {
     /**
      * Remove a knowledge skill
      * @param skillId What skill id to delete.
-     * @param category The matching knowledege skill category for skillId
+     * @param category The matching knowledge skill category for skillId
      */
     async removeKnowledgeSkill(skillId: string, category: keyof Shadowrun.KnowledgeSkills) {
         const updateData = Helpers.getDeleteKeyUpdateData(`system.skills.knowledge.${category}.value`, skillId);
@@ -960,7 +960,7 @@ export class SR5Actor extends Actor {
     /**
      * Show all hidden skills.
      *
-     * For hidding/unhiding skill see SR5Actor#showSkill and SR5Actor#hideSkill.
+     * For hiding/showing a skill see SR5Actor#showSkill and SR5Actor#hideSkill.
      */
     async showHiddenSkills() {
         const updateData = {};
@@ -1112,13 +1112,13 @@ export class SR5Actor extends Actor {
      * matrix success test.
      *
      * @param parts The Value.mod field as a PartsList
-     * @param atts The attributes used for the success test.
+     * @param attributes The attributes used for the success test.
      */
-    _addMatrixParts(parts: PartsList<number>, atts) {
-        if (Helpers.isMatrix(atts)) {
+    _addMatrixParts(parts: PartsList<number>, attributes) {
+        if (Helpers.isMatrix(attributes)) {
             if (!('matrix' in this.system)) return;
 
-            // Apply general matrix modifiers based on commlink/cyberdeck status.
+            // Apply general matrix modifiers based on comlink/cyberdeck status.
             const matrix = this.system.matrix;
             if (matrix.hot_sim) parts.addUniquePart('SR5.HotSim', 2);
             if (matrix.running_silent) parts.addUniquePart('SR5.RunningSilent', -2);
@@ -1174,7 +1174,7 @@ export class SR5Actor extends Actor {
     }
 
     /**
-     * Override setFlag to remove the 'SR5.' from keys in modlists, otherwise it handles them as embedded keys
+     * Override setFlag to remove the 'SR5.' from keys in mod lists, otherwise it handles them as embedded keys
      * @param scope
      * @param key
      * @param value
@@ -1200,7 +1200,7 @@ export class SR5Actor extends Actor {
 
     /** Return either the linked token or the token of the synthetic actor.
      *
-     * @retrun Will return null should no token have been placed on scene.
+     * @return Will return null should no token have been placed on scene.
      */
     getToken(): TokenDocument | null {
         // Linked actors can only have one token, which isn't stored within actor data...
@@ -1568,7 +1568,7 @@ export class SR5Actor extends Actor {
         if (!combatant) return;
         if (!combatant.initiative) return;
 
-        // While not prohibiting, inform user about missing ressource.
+        // While not prohibiting, inform user about missing resource.
         if (combatant.initiative + modifier < 0) {
             ui.notifications?.warn('SR5.MissingRessource.Initiative', { localize: true });
         }
@@ -1768,7 +1768,7 @@ export class SR5Actor extends Actor {
     }
 
     /**
-     * Get all situaitional modifiers from this actor.
+     * Get all situational modifiers from this actor.
      */
     getSituationModifiers(options?): DocumentSituationModifiers {
         const modifiers = DocumentSituationModifiers.getDocumentModifiers(this);
