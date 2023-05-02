@@ -46,18 +46,17 @@ export interface SuccessTestValues extends TestValues {
  * Contain all data necessary to handle an action based test.
  */
 export interface TestData {
+    // How to label this test.
     title?: string
-    // TODO: implement typing method to apply effects to and for ations.
-    // TODO: Show set of test types here
+    // Determine the kind of test; defaults to the class constructor name.
     type?: string
 
     // Shadowrun 5 related test values.
-    // TODO: Think about moving these into general values. This would allow ActiveEffects to only target .values
     pool: ValueField
     threshold: ValueField
     limit: ValueField
 
-    // TODO: Is this still necessary?
+    // Internal test values.
     values: TestValues
 
     damage: DamageData
@@ -110,14 +109,45 @@ export interface SuccessTestMessageData {
 }
 
 /**
- * General handling of Shadowrun 5e success tests.
+ * General handling of Shadowrun 5e success tests as well as their FoundryVTT representation.
  *
- * This class handles all Shadowrun 5 rules surround success tests,
- * except for the dice rolling itself as well the flow handling of multi roll tests.
+ * SuccessTest implementation will handle
+ * - general flow of a FoundryVTT Shadowrun 5e success test
+ * - shadowrun 5e rules
+ * - FoundryVTT dialog creation for user input
+ * - FoundryVTT chat message creation
  *
+ * Usage:
+ * const test = new SuccessTest({pool: 6});
+ * await test.execute();
+ * 
+ * The user facing point for a success test is the execute() method.
+ * It's up to the caller to decide what parameters to give.
+ * 
+ * Check the TestCreator helper for more convenient ways to create tests from
+ * - actions (data)
+ * - items
+ * - existing chat messages
+ * - ...
+ * 
+ * Create a test from an item:
+ * const test = await TestCreator.fromItem(item);
+ * test.execute();
+ * 
+ * Typically the system will create a test from an action. Each action contains a reference
+ * for the active, opposed, resist and follow up test to use. That test will be taken by the
+ * TestCreate._getTestClass() function. Whenever a user trigger test is to be executed, it should 
+ * be an action configuration that is used to retrieve and create the test.
+ * 
+ * The test registry is a simple key value store mapping names to classes underneath
+ * game.shadowrun5e.tests.
+ * 
+ * For the default SuccessTest class the registry entry would look like this:
+ * game.shadowrun5e.tests['SuccessTest'] = SuccessTest;
+ * and it would be retrieved by the TestCreator like this:
+ * const SuccessTest = TestCreate._getTestClass('SuccessTest');
+ * 
  * TODO: Check if Actor.getRollData() can be used to better implement this
- * TODO: Add unittesting.
- * TODO: Remove edge related data from options. Only use options for general test related handling, not shadowrun interal stuff.
  */
 export class SuccessTest {
     public data: SuccessTestData;
@@ -132,6 +162,8 @@ export class SuccessTest {
         this.actor = documents?.actor;
         this.item = documents?.item;
         this.rolls = documents?.rolls || [];
+        
+        // User selected targets of this test.
         this.targets = [];
 
         options = options || {}
@@ -220,14 +252,47 @@ export class SuccessTest {
         return modifiers || DataDefaults.valueData({label: 'SR5.Labels.Action.Modifiers'});
     }
 
+    /**
+     * Overwrite this method to alter the title of test dialogs and messages.
+     */
+    get title(): string {
+        // @ts-ignore
+        return `${game.i18n.localize(this.constructor.label)}`;
+    }
+
+    /**
+     * Determine the type of success test for this implementation.
+     * 
+     * By default this will be the class constructor name. 
+     * NOTE: This breaks for a build pipeline using minification. This is due to
+     * , currently, the test registry using the runtime constructor name vs the compile time
+     * class name.
+     */
     get type(): string {
         return this.constructor.name;
     }
 
+    /**
+     * Get the label for this test type used for i18n.
+     */
+    static get label(): string {
+        return `SR5.Tests.${this.name}`;
+    }
+
+    /**
+     * Helper to determine if this test has been fully evaluated at least once.
+     */
     get evaluated(): boolean {
         return this.data.evaluated;
     }
 
+    /**
+     * FoundryVTT serializer method to embed this test into a document (ChatMessage).
+     * 
+     * Foundry expects Roll data to serialize into rolls.
+     * sr5-foundryvtt expects Test data to serialize into data.
+     * @returns 
+     */
     toJSON() {
         return {
             data: this.data,
@@ -237,7 +302,6 @@ export class SuccessTest {
 
     /**
      * Get the lowest side for a Shadowrun 5 die to count as a success
-     * TODO: Implement edge rules.
      */
     static get lowestSuccessSide(): number {
         return Math.min(...SR.die.success);
@@ -245,7 +309,6 @@ export class SuccessTest {
 
     /**
      * Get the lowest side for a Shadowrun 5 die to count as a glitch.
-     * TODO: Implement edge rules.
      */
     static get lowestGlitchSide(): number {
         return Math.min(...SR.die.glitch);
@@ -291,10 +354,6 @@ export class SuccessTest {
     static async _getOpposedActionTestData(testData, actor: SR5Actor, previousMessageId: string): Promise<SuccessTestData | undefined> {
         console.error(`Shadowrun 5e | Testing Class ${this.name} doesn't support opposed message actions`);
         return;
-    }
-
-    static get label(): string {
-        return `SR5.Tests.${this.name}`;
     }
 
     /**
@@ -378,14 +437,6 @@ export class SuccessTest {
     }
 
     /**
-     * Overwrite this method to alter the title of test dialogs and messages.
-     */
-    get title(): string {
-        // @ts-ignore
-        return `${game.i18n.localize(this.constructor.label)}`;
-    }
-
-    /**
      * Helper method to create the main SR5Roll.
      */
     createRoll(): SR5Roll {
@@ -396,10 +447,16 @@ export class SuccessTest {
         return roll;
     }
 
+    /**
+     * Allow other implementations to override what TestDialog template to use.
+     */
     get _dialogTemplate(): string {
         return 'systems/shadowrun5e/dist/templates/apps/dialogs/success-test-dialog.html';
     }
 
+    /**
+     * Allow other implementations to override what ChatMessage template to use.
+     */
     get _chatMessageTemplate(): string {
         return 'systems/shadowrun5e/dist/templates/rolls/success-test-message.html';
     }
@@ -414,12 +471,16 @@ export class SuccessTest {
         return new TestDialog({test: this, templatePath: this._dialogTemplate}, undefined, this._testDialogListeners());
     }
 
+    /**
+     * Allow other implementations to add listeners to the TestDialog HTML, changing
+     * it's behavior without the need to sub-class TestDialog.
+     */
     _testDialogListeners() {
         return [] as TestDialogListener[]
     }
 
     /**
-     * Supress dialog during execution
+     * Suppress dialog during execution
      */
     hideDialog() {
         if (!this.data.options) this.data.options = {};
@@ -1095,10 +1156,9 @@ export class SuccessTest {
     }
 
     /**
-     * Consume ressources according to whats configured for this world.
-     
+    * Consume ressources according to whats configured for this world.
     * @returns true when the test can process
-     */
+    */
     async consumeDocumentRessoucesWhenNeeded(): Promise<boolean> {
         const mustHaveRessouces = game.settings.get(SYSTEM_NAME, FLAGS.MustHaveRessourcesOnTest);
         // Make sure to nest canConsume to avoid unneccessary warnings.
@@ -1110,7 +1170,7 @@ export class SuccessTest {
     }
 
     /**
-     * Executing a test will start all behaviours necessary to:
+     * Executing a test will start all behaviors necessary to:
      * - Calculate its values
      * - Show and handle a user facing test dialog
      * - Render and show a resulting test message
@@ -1118,7 +1178,7 @@ export class SuccessTest {
      * - Trigger resulting methods for all results, including success and failure
      *
      * Implementing classes should seek to change out methods used here, or within those methods, to alter test
-     * behaviour to their needs.
+     * behavior to their needs.
      *
      * When execute methods promise resolves this test and its chain is completed.
      *
@@ -1155,8 +1215,10 @@ export class SuccessTest {
 
     /**
      * Handle Edge rule 'second chance' within this test according to SR5#56
+     * 
+     * This is a execute method alternative.
      */
-     async executeWithSecondChance(): Promise<this> {
+    async executeWithSecondChance(): Promise<this> {
         console.debug(`Shadowrun 5e | ${this.constructor.name} will apply second chance rules`);
 
         if (!this.data.sourceActorUuid) {
@@ -1190,8 +1252,7 @@ export class SuccessTest {
     }
 
     /**
-     * 
-     * @returns 
+     * A execute method alternative to handle Edge rule 'push the limit' within this test.
      */
     async executeWithPushTheLimit(): Promise<this> {
         console.debug(`Shadowrun 5e | ${this.constructor.name} will push the limit rules`);
@@ -1229,7 +1290,7 @@ export class SuccessTest {
 
 
     /**
-     * Allow subclasses to override behaviour after a test has finished.
+     * Allow subclasses to override behavior after a test has finished.
      *
      * This can be used to alter values after a test is over.
      */
@@ -1242,7 +1303,7 @@ export class SuccessTest {
     }
 
     /**
-     * Allow subclasses to override behaviour after a successful test result.
+     * Allow subclasses to override behavior after a successful test result.
      *
      * This can be used to alter values after a test succeeded.
      * @override
@@ -1250,7 +1311,7 @@ export class SuccessTest {
     async processSuccess() {}
 
     /**
-     * Allow subclasses to override behaviour after a failure test result
+     * Allow subclasses to override behavior after a failure test result
      *
      * This can be used to alter values after a test failed.
      * @override
@@ -1258,7 +1319,7 @@ export class SuccessTest {
     async processFailure() {}
 
     /**
-     * Allow subclasses to override behaviour after a test is fully done. This will be called after processResults
+     * Allow subclasses to override behavior after a test is fully done. This will be called after processResults
      * and allows for additional processes to be triggered that don't affect this test itself.
      *
      * This can be used to trigger other processes like followup tests or saving values.
@@ -1369,7 +1430,7 @@ export class SuccessTest {
 
     /**
      * DiceSoNice must be implemented locally to avoid showing dice on gmOnlyContent throws while also using
-     * FoundryVTT ChatMessage of type roll for their content visibility behaviour.
+     * FoundryVTT ChatMessage of type roll for their content visibility behavior.
      * 
      * https://gitlab.com/riccisi/foundryvtt-dice-so-nice/-/wikis/Integration
      */
