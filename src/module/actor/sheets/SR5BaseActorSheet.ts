@@ -17,6 +17,7 @@ import Skills = Shadowrun.Skills;
 import MatrixAttribute = Shadowrun.MatrixAttribute;
 import DeviceData = Shadowrun.DeviceData;
 import KnowledgeSkills = Shadowrun.KnowledgeSkills;
+import { LinksHelpers } from '../../utils/links';
 
 
 /**
@@ -30,15 +31,18 @@ export interface SheetItemData {
     description: any
 }
 
+export interface InventorySheetDataByType {
+    type: string;
+    label: string;
+    isOpen: boolean;
+    items: SheetItemData[];
+}
+
 export interface InventorySheetData {
     name: string,
     label: string,
     types: {
-        [type: string]: {
-            type: string,
-            label: string,
-            items: SheetItemData[]
-        }
+        [type: string]: InventorySheetDataByType
     }
 }
 
@@ -118,16 +122,18 @@ export class SR5BaseActorSheet extends ActorSheet {
     }
     // Used to store the scroll position on rerender. Needed as Foundry fully re-renders on Document update.
     _scroll: string;
+    _inventoryOpenClose:Record<string, boolean> = {};
+
     // Store the currently selected inventory.
     selectedInventory: string;
-
 
     constructor(...args) {
         // @ts-ignore // Since we don't need any actual data, don't define args to avoid breaking changes.
         super(...args);
 
         // Preselect default inventory.
-        this.selectedInventory = this.document.defaultInventory.name;
+        this.selectedInventory = this.actor.defaultInventory.name;
+        this._setInventoryVisibility(true);
     }
 
     /**
@@ -168,7 +174,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * Extend and override the default options used by the 5e Actor Sheet
      * @returns {Object}
      */
-    static get defaultOptions() {
+    static override get defaultOptions() {
         return mergeObject(super.defaultOptions, {
             classes: ['sr5', 'sheet', 'actor'],
             width: 905,
@@ -192,7 +198,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      *
      * @override
      */
-    get template() {
+    override get template() {
         const path = 'systems/shadowrun5e/dist/templates';
 
         if (this.actor.limited) {
@@ -203,7 +209,7 @@ export class SR5BaseActorSheet extends ActorSheet {
     }
 
     /** SheetData used by _all_ actor types! */
-    async getData(options) {
+    override async getData(options) {
         // Remap Foundry default v8/v10 mappings to better match systems legacy foundry versions mapping accross it's templates.
         // NOTE: If this is changed, you'll have to match changes on all actor sheets.
         let data = super.getData() as any;
@@ -230,7 +236,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         this._prepareSkillsWithFilters(data);
 
         data.itemType = this._prepareItemTypes(data);
-        data.effects = prepareActiveEffectCategories(this.document.effects);  // All actor types have effects.
+        data.effects = prepareActiveEffectCategories(this.actor.effects);  // All actor types have effects.
         data.inventories = this._prepareItemsInventory();
         data.inventory = this._prepareSelectedInventory(data.inventories);
         data.hasInventory = this._prepareHasInventory(data.inventories);
@@ -251,13 +257,16 @@ export class SR5BaseActorSheet extends ActorSheet {
     }
 
     /** Listeners used by _all_ actor types! */
-    activateListeners(html) {
+    override activateListeners(html) {
         super.activateListeners(html);
 
         Helpers.setupCustomCheckbox(this, html)
 
         // Active Effect management
-        html.find(".effect-control").on('click',event => onManageActiveEffect(event, this.document));
+        html.find(".effect-control").on('click',event => onManageActiveEffect(event, this.actor));
+
+        // Inventory visibility switch
+        html.find('.item-toggle').on('click', this._onInventorySectionVisiblitySwitch.bind(this));
 
         // General item CRUD management...
         html.find('.item-create').on('click', this._onItemCreate.bind(this));
@@ -279,6 +288,8 @@ export class SR5BaseActorSheet extends ActorSheet {
 
         // Actor inventory handling....
         html.find('.inventory-inline-create').on('click', this._onInventoryCreate.bind(this));
+        html.find('.inventory-collapse').on('click', this._onInventorySectionVisibilityChange.bind(this, false));
+        html.find('.inventory-expand').on('click', this._onInventorySectionVisibilityChange.bind(this, true));
         html.find('.inventory-remove').on('click', this._onInventoryRemove.bind(this));
         html.find('.inventory-edit').on('click', this._onInplaceInventoryEdit.bind(this));
         html.find('.inventory-input-cancel').on('click', this._onInplaceInventoryEditCancel.bind(this));
@@ -307,6 +318,9 @@ export class SR5BaseActorSheet extends ActorSheet {
         html.find('#filter-skills').on('input', this._onFilterSkills.bind(this));
 
         // Skill CRUD handling...
+        html.find('.skill-opensource').on('click', this._onOpenSourceSkill.bind(this));
+        html.find('.knowledge-skill-opensource').on('click', this._onOpenSourceSkill.bind(this));
+        html.find('.language-skill-opensource').on('click', this._onOpenSourceSkill.bind(this));
         html.find('.skill-edit').on('click', this._onShowEditSkill.bind(this));
         html.find('.knowledge-skill-edit').on('click', this._onShowEditKnowledgeSkill.bind(this));
         html.find('.language-skill-edit').on('click', this._onShowEditLanguageSkill.bind(this));
@@ -368,13 +382,14 @@ export class SR5BaseActorSheet extends ActorSheet {
      *
      * @param inventory The inventory to check and add types to.
      */
-    _addInventoryTypes(inventory) {
+    _addInventoryTypes(inventory: InventorySheetData) {
         for (const type of this.getInventoryItemTypes()) {
             if (inventory.types.hasOwnProperty(type)) continue;
 
             inventory.types[type] = {
                 type: type,
                 label: SR5.itemTypes[type],
+                isOpen: this._inventoryOpenClose[type],
                 items: []
             };
         }
@@ -384,7 +399,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * @override Default drag start handler to add Skill support
      * @param event
      */
-    async _onDragStart(event) {
+    override async _onDragStart(event) {
         // Create drag data
         const dragData = {
             actorId: this.actor.id,
@@ -454,7 +469,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         // Add any created items to the selected inventory.
         if (Array.isArray(documents)) {
             const items = documents.filter(document => document instanceof SR5Item);
-            await this.document.inventory.addItems(this.selectedInventory, items);
+            await this.actor.inventory.addItems(this.selectedInventory, items);
         }
 
         return documents;
@@ -464,7 +479,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * Enhance Foundry state restore on rerender by more user interaction state.
      * @override
      */
-    async _render(...args) {
+    override async _render(...args) {
         const focus = this._saveInputCursorPosition();
         this._saveScrollPositions();
 
@@ -508,7 +523,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * Used together with _restoreScrollPositions during render calls.
      * @private
      */
-    _saveScrollPositions() {
+    override _saveScrollPositions() {
         const activeList = this._findActiveList();
         if (activeList.length) {
             this._scroll = activeList.prop('scrollTop');
@@ -519,7 +534,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * Used together with _storeScrollPositions during render calls.
      * @private
      */
-    _restoreScrollPositions() {
+    override _restoreScrollPositions() {
         const activeList = this._findActiveList();
         if (activeList.length && this._scroll != null) {
             activeList.prop('scrollTop', this._scroll);
@@ -534,9 +549,35 @@ export class SR5BaseActorSheet extends ActorSheet {
         return $(this.element).find('.tab.active .scroll-area');
     }
 
+    async _onInventorySectionVisibilityChange(isOpen: boolean, event) {
+        event.preventDefault();
+        this._setInventoryVisibility(isOpen);
+        this.render();
+    }
+
+    async _onInventorySectionVisiblitySwitch(event) {
+        event.preventDefault();
+        const type = Helpers.listItemId(event);
+
+        this._setInventoryTypeVisibility(type, !this._inventoryOpenClose[type]);
+        this.render();
+    }
+
+    _setInventoryVisibility(isOpen: boolean) {
+        Object.keys(CONFIG.Item.typeLabels)
+            .forEach(type => this._setInventoryTypeVisibility(type, isOpen));
+    }
+
+    _setInventoryTypeVisibility(type: string, isOpen: boolean) {
+        this._inventoryOpenClose[type] = isOpen
+    }
+
     async _onItemCreate(event) {
         event.preventDefault();
         const type = Helpers.listItemId(event);
+        
+        // Unhide section it it was
+        this._setInventoryTypeVisibility(type, true);
 
         // TODO: Add translation for item names...
         const itemData = {
@@ -547,8 +588,8 @@ export class SR5BaseActorSheet extends ActorSheet {
         if (!items) return;
 
         // Add the item to the selected inventory.
-        if (this.selectedInventory !== this.document.defaultInventory.name)
-            await this.document.inventory.addItems(this.selectedInventory, items);
+        if (this.selectedInventory !== this.actor.defaultInventory.name)
+            await this.actor.inventory.addItems(this.selectedInventory, items);
     }
 
     async _onItemEdit(event) {
@@ -805,23 +846,23 @@ export class SR5BaseActorSheet extends ActorSheet {
 
         // All inventories for showing all items, but not as default
         // Add first, for it to appear on top.
-        inventoriesSheet[this.document.allInventories.name] = {
-            name: this.document.allInventories.name,
-            label: this.document.allInventories.label,
+        inventoriesSheet[this.actor.allInventories.name] = {
+            name: this.actor.allInventories.name,
+            label: this.actor.allInventories.label,
             types: {}
         };
-        this._addInventoryTypes(inventoriesSheet[this.document.allInventories.name]);
+        this._addInventoryTypes(inventoriesSheet[this.actor.allInventories.name]);
 
         // Default inventory for items without a defined one.
         // Add first for display purposes on sheet.
-        inventoriesSheet[this.document.defaultInventory.name] = {
-            name: this.document.defaultInventory.name,
-            label: this.document.defaultInventory.label,
+        inventoriesSheet[this.actor.defaultInventory.name] = {
+            name: this.actor.defaultInventory.name,
+            label: this.actor.defaultInventory.label,
             types: {}
         };
-        this._addInventoryTypes(inventoriesSheet[this.document.defaultInventory.name]);
+        this._addInventoryTypes(inventoriesSheet[this.actor.defaultInventory.name]);
 
-        Object.values(this.document.system.inventories).forEach(inventory => {
+        Object.values(this.actor.system.inventories).forEach(inventory => {
             const {name, label, itemIds} = inventory
 
             // Avoid re-adding default inventories.
@@ -845,7 +886,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         const handledTypes = this.getHandledItemTypes();
 
         // Check all items and using the item to inventory mapping add them to that inventory.
-        this.document.items.forEach((item) => {
+        this.actor.items.forEach((item) => {
             if (!item.id) return;
 
             // Handled types are on the sheet outside the inventory.
@@ -854,7 +895,7 @@ export class SR5BaseActorSheet extends ActorSheet {
             const sheetItem = this._prepareSheetItem(item);
 
             // Determine what inventory the item sits in.
-            const inventory = itemIdInventory[item.id] || this.document.defaultInventory;
+            const inventory = itemIdInventory[item.id] || this.actor.defaultInventory;
             // Build inventory list this item should be shown an.
             const addTo: string[] = inventory.showAll ? Object.keys(inventoriesSheet) : [inventory.name];
 
@@ -867,6 +908,7 @@ export class SR5BaseActorSheet extends ActorSheet {
                     inventorySheet.types[item.type] = {
                         type: item.type,
                         label: SR5.itemTypes[item.type],
+                        isOpen: this._inventoryOpenClose[item.type],
                         items: []
                     };
                 }
@@ -942,7 +984,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         });
 
         // Add existing items to their types as sheet items
-        this.document.items.forEach((item: SR5Item) => {
+        this.actor.items.forEach((item: SR5Item) => {
             const sheetItem = this._prepareSheetItem(item);
             itemType[sheetItem.type].push(sheetItem);
         });
@@ -980,7 +1022,7 @@ export class SR5BaseActorSheet extends ActorSheet {
     async _onMarksQuantityChange(event) {
         event.stopPropagation();
 
-        if (this.object.isIC() && this.object.hasHost()) {
+        if (this.actor.isIC() && this.actor.hasHost()) {
             return ui.notifications?.info(game.i18n.localize('SR5.Infos.CantModifyHostContent'));
         }
 
@@ -993,13 +1035,13 @@ export class SR5BaseActorSheet extends ActorSheet {
         if (!scene || !target) return; // item can be undefined.
 
         const marks = parseInt(event.currentTarget.value);
-        await this.object.setMarks(target, marks, {scene, item, overwrite: true});
+        await this.actor.setMarks(target, marks, {scene, item, overwrite: true});
     }
 
     async _onMarksQuantityChangeBy(event, by: number) {
         event.stopPropagation();
 
-        if (this.object.isIC() && this.object.hasHost()) {
+        if (this.actor.isIC() && this.actor.hasHost()) {
             return ui.notifications?.info(game.i18n.localize('SR5.Infos.CantModifyHostContent'));
         }
 
@@ -1011,13 +1053,13 @@ export class SR5BaseActorSheet extends ActorSheet {
         const {scene, target, item} = markedDocuments;
         if (!scene || !target) return; // item can be undefined.
 
-        await this.object.setMarks(target, by, {scene, item});
+        await this.actor.setMarks(target, by, {scene, item});
     }
 
     async _onMarksDelete(event) {
         event.stopPropagation();
 
-        if (this.object.isIC() && this.object.hasHost()) {
+        if (this.actor.isIC() && this.actor.hasHost()) {
             return ui.notifications?.info(game.i18n.localize('SR5.Infos.CantModifyHostContent'));
         }
 
@@ -1027,20 +1069,20 @@ export class SR5BaseActorSheet extends ActorSheet {
         const userConsented = await Helpers.confirmDeletion();
         if (!userConsented) return;
 
-        await this.object.clearMark(markId);
+        await this.actor.clearMark(markId);
     }
 
     async _onMarksClearAll(event) {
         event.stopPropagation();
 
-        if (this.object.isIC() && this.object.hasHost()) {
+        if (this.actor.isIC() && this.actor.hasHost()) {
             return ui.notifications?.info(game.i18n.localize('SR5.Infos.CantModifyHostContent'));
         }
 
         const userConsented = await Helpers.confirmDeletion();
         if (!userConsented) return;
 
-        await this.object.clearMarks();
+        await this.actor.clearMarks();
     }
 
     _prepareSkillsWithFilters(data: SR5ActorSheetData) {
@@ -1186,6 +1228,18 @@ export class SR5BaseActorSheet extends ActorSheet {
         // NOTE: Knowledge skills still use a combined id in order for the legacy skill editing dialog to work.
         const skillId = itemId.includes('.') ? itemId.split('.')[0] : itemId;
         return this.actor.rollSkill(skillId, {event, specialization: true});
+    }
+
+    async _onOpenSourceSkill(event) {
+        event.preventDefault();
+        const [skillId, ] = Helpers.listItemId(event).split('.');
+
+        const skill = this.actor.getSkill(skillId);
+        if (!skill) {
+            return console.error(`Shadowrun 5e | Editing skill failed due to missing skill ${skillId}`);
+        }
+
+        LinksHelpers.openSource(skill.link);
     }
 
     async _onShowEditSkill(event) {
@@ -1481,10 +1535,10 @@ export class SR5BaseActorSheet extends ActorSheet {
         const userConsented = await Helpers.confirmDeletion();
         if (!userConsented) return;
 
-        await this.document.inventory.remove(this.selectedInventory);
+        await this.actor.inventory.remove(this.selectedInventory);
 
         // Preselect default instead of none.
-        this.selectedInventory = this.document.defaultInventory.name;
+        this.selectedInventory = this.actor.defaultInventory.name;
         this.render();
     }
 
@@ -1498,7 +1552,7 @@ export class SR5BaseActorSheet extends ActorSheet {
         event.preventDefault();
 
         // Disallow editing of default inventory.
-        if (action === 'edit' && this.document.inventory.disallowRename(this.selectedInventory))
+        if (action === 'edit' && this.actor.inventory.disallowRename(this.selectedInventory))
             return ui.notifications?.warn(game.i18n.localize('SR5.Warnings.CantEditDefaultInventory'));
 
 
@@ -1549,10 +1603,10 @@ export class SR5BaseActorSheet extends ActorSheet {
 
         switch (action) {
             case 'edit':
-                inventory = await this.document.inventory.rename(this.selectedInventory, inventory);
+                inventory = await this.actor.inventory.rename(this.selectedInventory, inventory);
                 break;
             case 'create':
-                inventory = await this.document.inventory.create(inventory);
+                inventory = await this.actor.inventory.create(inventory);
                 break;
         }
 
@@ -1589,15 +1643,15 @@ export class SR5BaseActorSheet extends ActorSheet {
         event.preventDefault();
 
         const itemId = Helpers.listItemId(event);
-        const item = this.document.items.get(itemId);
+        const item = this.actor.items.get(itemId);
         if (!item) return;
 
         // Ask user about what inventory to move the item to.
-        const dialog = new MoveInventoryDialog(this.document, this.selectedInventory);
+        const dialog = new MoveInventoryDialog(this.actor, this.selectedInventory);
         const inventory = await dialog.select();
         if (dialog.canceled) return;
 
-        await this.document.inventory.addItems(inventory, item);
+        await this.actor.inventory.addItems(inventory, item);
     }
 
     /**
@@ -1712,7 +1766,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * @returns List of prepare sit. mod data
      */
     _prepareSituationModifiers(): {category: string, label: string, value: number, hidden: boolean}[] {
-        const modifiers = this.document.getSituationModifiers();
+        const modifiers = this.actor.getSituationModifiers();
         if (!modifiers) return [];
 
         return Object.entries(modifiers._modifiers).map(([category, modifier]: [Shadowrun.SituationModifierType, SituationModifier]) => {
@@ -1732,14 +1786,14 @@ export class SR5BaseActorSheet extends ActorSheet {
     _hideSituationModifier(category: Shadowrun.SituationModifierType): boolean {
         switch (category) {
             case 'background_count':
-                return !this.document.isAwakened;
+                return !this.actor.isAwakened;
             case 'environmental':
-                return this.document.isSprite();
+                return this.actor.isSprite();
             // Defense modifier is already shown in general modifier section.
             case 'defense':
                 return true;
             case 'recoil':
-                return !this.document.hasPhysicalBody
+                return !this.actor.hasPhysicalBody
             default:
                 return false;
         }
@@ -1751,7 +1805,7 @@ export class SR5BaseActorSheet extends ActorSheet {
      * @param event 
      */
     _onShowSituationModifiersApplication(event) {
-        new SituationModifiersApplication(this.document).render(true);
+        new SituationModifiersApplication(this.actor).render(true);
     }
 
     /**

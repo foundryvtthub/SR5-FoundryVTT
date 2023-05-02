@@ -67,6 +67,7 @@ import { RangedWeaponRules } from "../rules/RangedWeaponRules";
  * An esbuild update might fix this, but caused other issues at the time... Didn't fix it with esbuild@0.15.14 (20.11.2022)
  */
 import { ActionResultFlow } from './flows/ActionResultFlow';
+import { LinksHelpers } from '../utils/links';
 ActionResultFlow; // DON'T TOUCH!
 
 /**
@@ -104,7 +105,7 @@ export class SR5Item extends Item {
      *
      * If you need the actual actor owner, no matter how deep into item embedding, this current item is use SR5item.actorOwner
      */
-    get actor(): SR5Actor {
+    override get actor(): SR5Actor {
         return super.actor as unknown as SR5Actor;
     }
 
@@ -227,7 +228,7 @@ export class SR5Item extends Item {
      * - as of foundry v0.7.4, actor data isn't prepared by the time we prepare items
      * - this caused issues with Actions that have a Limit or Damage attribute and so those were moved
      */
-    prepareData() {
+    override prepareData() {
         super.prepareData();
         this.prepareNestedItems();
 
@@ -1022,51 +1023,11 @@ export class SR5Item extends Item {
     }
 
     /**
-     * Use the items source field to open it as another browser tab.
-     * 
-     * This is meant to allow for wikis to be used as sources.
-     */
-    openSourceURL() {
-        const source = this.getSource();
-        if (source === '') {
-            ui.notifications?.error('SR5.SourceFieldEmptyError', {localize: true});
-        }
-
-        window.open(source);
-    }
-
-    /**
-     * Use the items source field to try matching it against a PDF document and display that within FoundryVTT.
-     */
-    openSourcePDF() {
-        // Check for pdfpager module hook: https://github.com/farling42/fvtt-pdf-pager
-        if (!ui['pdfpager']) {
-            ui.notifications?.warn('SR5.DIALOG.MissingModuleContent', {localize: true});
-            return;
-        }
-
-        const source = this.getSource();
-        if (source === '') {
-            ui.notifications?.error('SR5.SourceFieldEmptyError', {localize: true});
-        }
-
-        const [code, page] = source.split(' ');
-
-        //@ts-ignore
-        ui.pdfpager.openPDFByCode(code, { page: parseInt(page) });
-    }
-
-    /**
      * Use the items source field and try different means of opening it.
      */
     openSource() {
         const source = this.getSource();
-
-        if (Helpers.isURL(source)) {
-            return this.openSourceURL();
-        }
-
-        return this.openSourcePDF();
+        LinksHelpers.openSource(source);
     }
 
     _canDealDamage(): boolean {
@@ -1501,7 +1462,7 @@ export class SR5Item extends Item {
         return this;
     }
 
-    async update(data, options?): Promise<this> {
+    override async update(data, options?): Promise<this> {
         // Item.item => Embedded item into another item!
         if (this._isNestedItem) {
             return this.updateNestedItem(data);
@@ -1718,7 +1679,7 @@ export class SR5Item extends Item {
         if (this.canBeNetworkDevice) await NetworkDeviceFlow.removeDeviceFromController(this);
     }
 
-    async _onCreate(changed, options, user) {
+    override async _onCreate(changed, options, user) {
         const applyData = {};
         //@ts-ignore
         Helpers.injectActionTestsIntoChangeData(this.type, changed, applyData);
@@ -1734,7 +1695,7 @@ export class SR5Item extends Item {
      *
      * This is preferred to altering data on the fly in the prepareData methods flow.
      */
-    async _preUpdate(changed, options: DocumentModificationOptions, user: User) {
+    override async _preUpdate(changed, options: DocumentModificationOptions, user: User) {
         // Some Foundry core updates will no diff and just replace everything. This doesn't match with the
         // differential approach of action test injection. (NOTE: Changing ownership of a document)
         if (options.diff !== false && options.recursive !== false) {

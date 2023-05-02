@@ -579,7 +579,7 @@ export class SuccessTest {
      */
     async prepareDocumentData() {
         // Calculate damage here to have access to actor AND item used.
-        this.data.damage = ActionFlow.calcDamage(this.data.damage, this.actor, this.item);
+        this.data.damage = ActionFlow.calcDamageData(this.data.damage, this.actor, this.item);
     }
 
     /**

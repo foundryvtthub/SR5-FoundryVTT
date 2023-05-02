@@ -1,11 +1,13 @@
 import SkillEditFormData = Shadowrun.SkillEditFormData;
 import {SR5Actor} from "../../actor/SR5Actor";
 import {SR5} from "../../config";
+import { SR5Item } from "../../item/SR5Item";
+import { LinksHelpers } from "../../utils/links";
 
 export class SkillEditSheet extends DocumentSheet {
     skillId: string;
 
-    get document(): SR5Actor {
+    override get document(): SR5Actor {
         return super.document as SR5Actor;
     }
 
@@ -18,7 +20,7 @@ export class SkillEditSheet extends DocumentSheet {
         return `system.skills.active.${this.skillId}`;
     }
 
-    static get defaultOptions() {
+    static override get defaultOptions() {
         const options = super.defaultOptions;
         // @ts-ignore
         return mergeObject(options, {
@@ -34,7 +36,7 @@ export class SkillEditSheet extends DocumentSheet {
         });
     }
 
-    get title(): string {
+    override get title(): string {
         const label = this.document.getSkillLabel(this.skillId);
         return `${game.i18n.localize('SR5.EditSkill')} - ${game.i18n.localize(label)}`;
     }
@@ -43,6 +45,8 @@ export class SkillEditSheet extends DocumentSheet {
         // get skill name.
         // NOTE: This differs from the skill id, which is used to identify the skill internally.
         const name = formData['skill.name'];
+
+        const link = formData['skill.link'];
 
         // get attribute name
         const attribute = formData['skill.attribute'];
@@ -87,7 +91,8 @@ export class SkillEditSheet extends DocumentSheet {
             bonus,
             name,
             attribute,
-            canDefault
+            canDefault,
+            link
         };
 
         // Avoid re-applying active effects without actual base level changes.
@@ -108,8 +113,9 @@ export class SkillEditSheet extends DocumentSheet {
         }
     }
 
-    activateListeners(html) {
+    override activateListeners(html) {
         super.activateListeners(html);
+        $(html).find('.open-source').on('click', this._onOpenSource.bind(this));
         $(html).find('.add-spec').on('click', this._addNewSpec.bind(this));
         $(html).find('.remove-spec').on('click', this._removeSpec.bind(this));
         $(html).find('.add-bonus').on('click', this._addNewBonus.bind(this));
@@ -140,6 +146,14 @@ export class SkillEditSheet extends DocumentSheet {
                 await this.document.update(updateData);
             }
         }
+    }
+
+    /**
+     * Open a source document connected to this skill.
+     */
+    async _onOpenSource(event) {
+        event.preventDefault();
+        LinksHelpers.openSource(this.getData().skill.link);
     }
 
     async _addNewSpec(event) {
