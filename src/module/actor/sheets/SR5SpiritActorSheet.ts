@@ -20,7 +20,13 @@ export class SR5SpiritActorSheet extends SR5BaseActorSheet {
         ];
     }
 
-    async getData(options: any) {
+    /**
+     * Spirit actors sheets deviate from base actors around the summoning workflows.
+     * 
+     * @param options 
+     * @returns 
+     */
+    override async getData(options: any) {
         const data = await super.getData(options);
         
         const spirit = this.document.asSpirit();
