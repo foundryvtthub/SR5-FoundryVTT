@@ -23,13 +23,13 @@ interface SummonSpiritTestData extends SuccessTestData {
  * NOTE: While we need spell casting data, we don't need general spell casting flow.
  *       This is due to spell casting operating on spell items, while summoning is an action item.
  * 
- * #TODO: Do we have drain?
  * #TODO: How to implement reagents
+ * 
  */
 export class SummonSpiritTest extends SuccessTest {
-    data: SummonSpiritTestData
+    override data: SummonSpiritTestData
 
-    _prepareData(data: any, options: any) {
+    override _prepareData(data: any, options: any) {
         data = super._prepareData(data, options);
 
         // #TODO: Preselect the first spirit type instead of empty.
@@ -44,29 +44,21 @@ export class SummonSpiritTest extends SuccessTest {
         return data;
     }
 
-    /**
-     * TODO: Reduce all spirit types to those available to the Summoner according to tradition.
-     * @returns A subset of all spirit types
-     */
-    _prepareSpiritTypes() {
-        return SR5.spriteTypes;
-    }
-
-    get _dialogTemplate() {
+    override get _dialogTemplate() {
         return 'systems/shadowrun5e/dist/templates/apps/dialogs/summonspirit-test-dialog.html';
     }
 
     /**
      * A summoning test can't be extended.
      */
-    get canBeExtended() {
+    override get canBeExtended() {
         return false;
     }
 
     /**
      * Drain test is configured here but will be executed within the opposing tests context.
      */
-    get autoExecuteFollowupTest() {
+    override get autoExecuteFollowupTest() {
         return false;
     }
 
@@ -75,7 +67,7 @@ export class SummonSpiritTest extends SuccessTest {
      * 
      * Limit 'force' is a dynamic test value, so it's missing here as it can't be taken from actor values.
      */
-    static _getDefaultTestAction(): Partial<Shadowrun.MinimalActionData> {
+    static override _getDefaultTestAction(): Partial<Shadowrun.MinimalActionData> {
         return {
             skill: 'summoning',
             attribute: 'magic'
@@ -85,7 +77,7 @@ export class SummonSpiritTest extends SuccessTest {
     /**
      * Summoning uses Force as limit, which needs to be injected into the normal test flow.
      */
-    prepareBaseValues() {
+    override prepareBaseValues() {
         super.prepareBaseValues();
         this.prepareLimitValue();
     }
@@ -99,6 +91,14 @@ export class SummonSpiritTest extends SuccessTest {
             this.data.limit.mod,
             'SR5.Force',
             SpellcastingRules.calculateLimit(force));
+    }
+
+    /**
+     * TODO: Reduce all spirit types to those available to the Summoner according to tradition.
+     * @returns A subset of all spirit types
+     */
+    _prepareSpiritTypes() {
+        return SR5.spriteTypes;
     }
 
     /**

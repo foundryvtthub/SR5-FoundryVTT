@@ -18,8 +18,8 @@ interface OpposedSummonSpiritTestData extends OpposedTestData {
  * The summoner is the active actor and the spirit is the opposed actor.
  */
 export class OpposedSummonSpiritTest extends OpposedTest {
-    data: OpposedSummonSpiritTestData
-    public against: SummonSpiritTest
+    override data: OpposedSummonSpiritTestData
+    public override against: SummonSpiritTest
 
     constructor(data, documents?: TestDocuments, options?: TestOptions) {
         // Due to summoning, the active actor for this test will be created during execution.
@@ -39,7 +39,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         if (this.against.type !== 'SummonSpiritTest') throw new Error(`${this.constructor.name} can only oppose SummonSpiritTest but is opposing a ${this.against.type}`);
     }
 
-    _prepareData(data: any, options?: any) {
+    override _prepareData(data: any, options?: any) {
         data = super._prepareData(data, options);
 
         data.summonedSpiritUuid = data.summonedSpiritUuid || null;
@@ -48,7 +48,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         return data;
     }
 
-    get _chatMessageTemplate(): string {
+    override get _chatMessageTemplate(): string {
         return 'systems/shadowrun5e/dist/templates/rolls/opposed-actor-creator-message.html'
     }
 
@@ -58,7 +58,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * - it resisting your summoning
      * - the summoner resists the drain based on the spirits results
      */
-    _prepareFollowupActionsTemplateData() {
+    override _prepareFollowupActionsTemplateData() {
         const actions: Shadowrun.FollowupAction[] = [];
 
         const testCls = TestCreator._getTestClass(this.against.data.action.followed.test);
@@ -72,14 +72,14 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * When summoning the opposing spirit test triggers the DrainTest from summoning.
      * Since we can expect this test be within the GM context, we can't auto cast DrainTest.
      */
-    get autoExecuteFollowupTest() {
+    override get autoExecuteFollowupTest() {
         return false;
     }
 
     /**
      * Calculate drain and execute the actives test followup (should be drain test)
      */
-    async executeFollowUpTest() {
+    override async executeFollowUpTest() {
         this.against.calcDrain(this.hits.value);
         await this.against.saveToMessage();
         this.against.executeFollowUpTest();
@@ -88,7 +88,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     /**
      * To have an opposing actor, that's not on the map already, create the spirit actor.
      */
-    async populateDocuments() {
+    override async populateDocuments() {
         await this.createSummonedSpirit();
         if (!this.data.summonedSpiritUuid) return;
 
@@ -100,7 +100,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     /**
      * Other than force there shouldn't be any other pool parts.
      */
-    applyPoolModifiers() {
+    override applyPoolModifiers() {
         // NOTE: We don't have an actor, therefore don't need to call document modifiers.
         PartsList.AddUniquePart(this.data.pool.mod, 'SR5.Force', this.against.data.force);
     }
@@ -108,7 +108,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     /**
      * A failure for the spirit is a success for the summoner.
      */
-    async processFailure() {
+    override async processFailure() {
         await this.finalizeSummonedSpirit();
         
         // Finalize the original test values.
@@ -119,15 +119,15 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     /**
      * A success of the spirit is a failure for the summoner.
      */
-    async processSuccess() {
+    override async processSuccess() {
         await this._cleanupAfterExecutionCancel();
     }
 
-    get successLabel(): string {
+    override get successLabel(): string {
         return 'SR5.TestResults.SpiritSummonFailure';
     }
 
-    get failureLabel(): string {
+    override get failureLabel(): string {
         return 'SR5.TestResults.SpiritSummonSuccess';
     }
 
@@ -208,7 +208,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * 
      * When user cancels the dialog, the spirits has been created. Remove it.
      */
-    async _cleanupAfterExecutionCancel() {
+    override async _cleanupAfterExecutionCancel() {
         if (!this.data.summonedSpiritUuid) return;
         const actor = await fromUuid(this.data.summonedSpiritUuid);
         await actor?.delete();
