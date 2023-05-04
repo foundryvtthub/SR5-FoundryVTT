@@ -15,6 +15,8 @@ interface SummonSpiritTestData extends SuccessTestData {
     drain: number
 
     drainDamage: Shadowrun.DamageData
+
+    preparedSpiritUuid: string
 }
 
 /**
@@ -25,6 +27,7 @@ interface SummonSpiritTestData extends SuccessTestData {
  * 
  * #TODO: How to implement reagents
  * 
+ * Summoning uses the default Success Test, Opposed Test and Followup Flow.
  */
 export class SummonSpiritTest extends SuccessTest {
     override data: SummonSpiritTestData
@@ -32,12 +35,8 @@ export class SummonSpiritTest extends SuccessTest {
     override _prepareData(data: any, options: any) {
         data = super._prepareData(data, options);
 
-        // #TODO: Preselect the first spirit type instead of empty.
-        data.spiritTypes = this._prepareSpiritTypes();
-        data.spiritTypeSelected = data.spiritTypeSelected || 0;
+        this._prepareSummoningData(data);
 
-        data.force = data.force || 1;
-        // #TODO: Check for drain?
         data.drain = data.drain || 0;
         data.drainDamage = data.drainDamage || DataDefaults.damageData();
 
@@ -99,6 +98,25 @@ export class SummonSpiritTest extends SuccessTest {
      */
     _prepareSpiritTypes() {
         return SR5.spiritTypes;
+    }
+
+    /**
+     * Take data from summoning item for test execution.
+     * @param data Test data to be extended
+     * @returns 
+     */
+    _prepareSummoningData(data: SummonSpiritTestData) {
+        if (!this.item) return;
+        const summoning = this.item.asSummoning;
+        if (!summoning) return;
+
+        data.spiritTypes = this._prepareSpiritTypes();
+
+        // Lower from more to less explicit values being given.
+        // Don't let force go below one.
+        data.force = Math.max(data.force || summoning.system.spirit.force || 1, 1);
+        data.spiritTypeSelected = data.spiritTypeSelected || summoning.system.spirit.type;
+        data.preparedSpiritUuid = data.preparedSpiritUuid || summoning.system.spirit.uuid;
     }
 
     /**

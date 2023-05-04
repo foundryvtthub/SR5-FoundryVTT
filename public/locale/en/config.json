@@ -903,6 +903,7 @@
         "Force": "Force",
         "Services": "Services",
         "Summoner": "Summoner",
+        "MissingSummoner": "No active summoner",
         "Type": "Type",
         "Types": {
             "Air": "Air",
@@ -1017,7 +1018,8 @@
     "SR5.ToggleEquip": "Toggle Equipped",
     "SR5.Tooltips": {
         "Actor": {
-            "ResetActorForNewRun": "Reset damage, edge, etc. for a new run"
+            "ResetActorForNewRun": "Reset damage, edge, etc. for a new run",
+            "MissingSummoner": "Drag&Drop Character or use summoning action"
         },
         "Effect": {
             "Inactive": "Inactive effects don't apply their changes until they are enabled",

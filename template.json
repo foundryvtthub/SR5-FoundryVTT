@@ -1362,6 +1362,7 @@
         "summoning": {
             "templates": ["description", "action"],
             "action": {
+                "type": "complex",
                 "test": "SummonSpiritTest",
                 "opposed": {
                     "test": "OpposedSummonSpiritTest"
@@ -1371,7 +1372,7 @@
                 }
             },
             "spirit": {
-                "force": 0,
+                "force": 1,
                 "type": "",
                 "uuid": ""
             }

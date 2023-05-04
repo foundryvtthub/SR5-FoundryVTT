@@ -1,3 +1,4 @@
+import { SR5Actor } from '../actor/SR5Actor';
 import { SR5 } from '../config';
 import { PartsList } from '../parts/PartsList';
 import { ConjuringRules } from '../rules/ConjuringRules';
@@ -9,7 +10,7 @@ import { TestCreator } from './TestCreator';
 
 interface OpposedSummonSpiritTestData extends OpposedTestData {
     // The created spirit actors FoundryVTT uuid
-    summonedSpiritUuid: null | string
+    summonedSpiritUuid: string
 }
 
 /**
@@ -42,7 +43,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     override _prepareData(data: any, options?: any) {
         data = super._prepareData(data, options);
 
-        data.summonedSpiritUuid = data.summonedSpiritUuid || null;
+        data.summonedSpiritUuid = data.summonedSpiritUuid || '';
         data.services = data.services || 0;
 
         return data;
@@ -90,9 +91,8 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      */
     override async populateDocuments() {
         await this.createSummonedSpirit();
-        if (!this.data.summonedSpiritUuid) return;
 
-        this.data.sourceActorUuid = this.data.summonedSpiritUuid;
+        this.data.sourceActorUuid = this.data.summonedSpiritUuid || this.against.data.preparedSpiritUuid;
 
         await super.populateDocuments();
     }
@@ -190,17 +190,35 @@ export class OpposedSummonSpiritTest extends OpposedTest {
 
         const summoner = this.against.actor;
 
-        const spiritType = this.against.data.spiritTypeSelected;
+        if (this.against.data.preparedSpiritUuid) {
+            // Reuse a prepared actor...
+            const preparedActor = await this.getPreparedSpiritActor();
+            if (!preparedActor) return console.error('Shadowrun 5e | Could not find prepared spirit actor');
+            preparedActor.update({ 'system.summonerUuid': summoner.uuid });
+            
+        } else {
+            // Create a new spirit actor from scratch...
+            const spiritType = this.against.data.spiritTypeSelected;
+            const spiritTypeLabel = game.i18n.localize(SR5.spiritTypes[spiritType]);
+            const name = `${summoner.name} ${spiritTypeLabel} ${game.i18n.localize('ACTOR.TypeSpirit')}`;
+            const force = this.against.data.force;
+            const system = { force, spiritType };
+    
+            const actor = await Actor.create({ name, type: 'spirit', system, prototypeToken: {actorLink: true} });
+    
+            if (!actor) return console.error('Shadowrun 5e | Could not create the summoned spirit actor');
+    
+            this.data.summonedSpiritUuid = actor.uuid;
+        }
+    }
 
-        const name = `${summoner.name} ${game.i18n.localize(SR5.spiritTypes[spiritType])} ${game.i18n.localize('ACTOR.TypeSpirit')}`;
-        const force = this.against.data.force;
-        const system = { force, spiritType };
-
-        const actor = await Actor.create({ name, type: 'spirit', system, prototypeToken: {actorLink: true} });
-
-        if (!actor) return console.error('Shadowrun 5e | Could not create the summoned spirit actor');
-
-        this.data.summonedSpiritUuid = actor.uuid;
+    /**
+     * Try getting a prepared spirit actor to reuse.
+     * 
+     * @returns 
+     */
+    async getPreparedSpiritActor(): Promise<SR5Actor|null> {
+        return await fromUuid(this.data.summonedSpiritUuid as string) as SR5Actor;
     }
 
     /**

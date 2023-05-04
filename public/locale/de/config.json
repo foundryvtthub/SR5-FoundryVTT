@@ -905,6 +905,7 @@
                 "Force": "Kraft",
                 "Services": "Dienste",
                 "Summoner": "Beschwörer",
+                "MissingSummoner": "Kein aktiver Beschwörer",
                 "Type": "Typ",
                 "Types": {
                         "Air": "Luft",
@@ -1019,7 +1020,8 @@
         "SR5.ToggleEquip": "Anlegen/Ablegen",
         "SR5.Tooltips": {
                 "Actor": {
-                        "ResetActorForNewRun": "Setzte Schaden, Edge, usw. für neuen Run zurück"
+                        "ResetActorForNewRun": "Setzte Schaden, Edge, usw. für neuen Run zurück",
+                        "MissingSummoner": "Drag&Drop Charakter oder verwendete Beschwören Aktion"
                 },
                 "Effect": {
                         "Inactive": "Inaktive Effekte wenden ihre Änderungen erst wieder an, wenn sie aktiviert werden",
