@@ -7,7 +7,7 @@ Shadowrun5e uses Typescript (with esbuild), npm with gulp and git. Follow these 
 * [https://www.npmjs.com/get-npm](https://www.npmjs.com/get-npm)
 * [https://github.com/git-guides/install-git#:~:text=To%20install%20Git%2C%20navigate%20to,installation%20by%20typing%3A%20git%20version%20.](https://github.com/git-guides/install-git#:~:text=To%20install%20Git%2C%20navigate%20to,installation%20by%20typing%3A%20git%20version%20.)
 
-After follow these steps using your terminal (cmd.exe on Windows):
+Follow these steps using your terminal (cmd.exe on Windows):
 * `npm install --global gulp-cli`
 * Follow this manual on how to work with a Github forking and cloning, git branches and Github pull requests ([https://opensource.com/article/19/7/create-pull-request-github](https://opensource.com/article/19/7/create-pull-request-github))
 * `cd <the_cloned_fork_directory>`
@@ -20,11 +20,10 @@ There are multiple gulp tasks available to help development:
 * build => rebuild the system once
 * link => See section below
 
-In general the application within FoundryVTT will only use contents in `/dist`.
-
+The resulting application used for FoundryVTT will only use contents in `/dist`.
 
 # System Architecture
-
+A broad overview of the different areas of the shadowrun5e system. For more explanations around system specific concepts see `System Concepts`.
 ## Folder structure
 Everything needed to execute the system within foundry must live under 
 * `/dist`
@@ -41,7 +40,7 @@ The FoundryVTT language config files used by Foundry will be at `/dist/lang/<lan
 
 In order to get your translation changes to the `/public` language files into the system, you'll have to create a GitHub pull request against the systems `master`/`main` branch. 
 
-## Structure
+## Separation
 More and more parts of the system move to separate modules organized into these broad layers:
 All following folder reference are relative to src\module\*
 * Rules layer. Shouldn't contain any references to Foundry objects. At best system objects should be used (like a PartsList)
@@ -58,12 +57,13 @@ We'll gladly accept pull requests for all things moving the system forward. :)
 
 The system branch workflow is simple:
 `master` is the main and stable branch that is *save* to pull from and is meant to adress your pull requests into. It's setup with an GitHub action performing a TypeScript build dry run; this action has to succeed for any pull request to be considered.
-`release/**` is the active branch for upcoming releases. It's temporary and will be removed once merged into `master`. If you're actively working on changes for that release, you cann pull from it and adress your pull request into it. It's setup using the same GitHub action as `master`. You should only pull from this branch, if you need commits in it's history. Otherwise use `master`.
+
+`release/**` is the active branch for upcoming releases. It's temporary and will be removed once merged into `master`. If you're actively working on changes for that release, you can pull from it and address your pull request into it. It's setup using the same GitHub action as `master`. You should only pull from this branch, if you need commits in it's history. Otherwise use `master`.
 
 ## Unittesting
 There is unit testing support using the FVTT Quench module. It's encouraged to do some unit testing where possible but it's not mandatory. Rule modules should always contain some testing, while flow modules are encouraged to have some. Any application layers don't need testing. See the structure section for some broad overview over different layers / modules. 
 
-### Linking the dev and system folder
+## Linking the dev and system folder
 It's helpful, but not strictly necessary, to place your development folder separate from the FoundryVTT system folder as a system update will overwrite your development folder otherwise. This can be done with linking the two.
 
 For the `gulp link` command to work, you need to include the following file as _foundryconfig.json_ directly underneath your development shadowrun5e system directory.
@@ -81,6 +81,7 @@ You should see a success message and a little arrow symbol on the shadowrun5e fo
 
 
 ## Linux and docker workflow changes
+> **NOTE:** This approach is considered legacy and not actively used anymore. @taMiF left it here for your consideration.
 
 On Linux you can use `docker` (or another container runtime like `podman`) to
 quickly setup a local instance of `foundry`:
