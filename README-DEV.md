@@ -140,6 +140,14 @@ For further details see the `SuccessTest` class docs and `TestCreation` docs.
 If you don't know how to create a `SuccessTest` implementation the helper function within `TestCreator` available at `game.shadowrun5e.test`
 provide a few different options. These are meant as system internal helpers to simplify the different ways to create tests
 into one helper and not pollute the general `SuccessTest` class.
+#### Value application
+Tests can be created with values from these sources:
+- action
+- test action defaults
+- test action based on documents
+
+These different value providers will be merged in order of distance to the user by `TestCreator`, allowing a test implementation to take values from all of these sources and overwrite only those necessary. The closest user distance is given by the action, followed by the documents.
+
 ### Class structure
 Everything is based on the `SuccessTest` class, which defines general testing flow and also handles Foundry related interaction.
 
@@ -172,3 +180,7 @@ This allows GMs to define broad situation modifiers for all actors on a specific
 
 Examples for these are environmental, noise and recoil.
 These modifiers can also be used to apply rules that need to recalculate between tests or combat turns or other changing events outside of an actors context or data preparation.
+
+## Actions
+Any item can contain the action template allowing it to cast it as a Shadowrun 5e success test.
+
