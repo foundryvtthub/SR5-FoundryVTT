@@ -41,14 +41,14 @@ The FoundryVTT language config files used by Foundry will be at `/dist/lang/<lan
 
 In order to get your translation changes to the `/public` language files into the system, you'll have to create a GitHub pull request against the systems `master`/`main` branch. 
 
-## Design
+## Structure
 More and more parts of the system move to separate modules organized into these broad layers:
 All following folder reference are relative to src\module\*
 * Rules layer. Shouldn't contain any references to Foundry objects. At best system objects should be used (like a PartsList)
   These live in the rules\ folder
 * Flow layer. Should use the rules modules to introduce an order of operations for them and collect and output information. This will contain Foundry objects. These live in item\flows and actor\flows.
 * Application layer. Handle interface operations. Dialogs. Application windows. Chat Message creation and so forth.
-* Tests layer. Whenever any Shadowrun test is implemented it should extend the SuccessTest class. All tests live in the tests\ folder.   
+* Tests layer. Whenever any Shadowrun test is implemented it should extend the SuccessTest class. All tests live in the tests\ folder. See `Test Implementation` for more details.
 
 Additional separations are made for
 * Initial data generation of items or template partials
@@ -115,3 +115,59 @@ If you need to restart the instance:
 docker-compose down
 docker-compose up
 ```
+
+# System Concepts
+General concepts as used in the shadowrun5e system.
+## Test implementation (Success Test)
+The shadowrun5e system implements Shadowrun 5e Success Tests as implementations of the `SuccessTest` class. These implementations are connected to items containing `action` segments. An `action` segment defines values and implementations to use for all tests related to that action.
+
+While a `SuccessTest` implementation doesn't need an `action` to function, it's advised to trigger tests via casting actions.
+
+For further details see the `SuccessTest` class docs and `TestCreation` docs.
+### General structure
+* Anything testable defines an action
+* An action can have multiple tests connected to it:
+  * An active test
+  * A followup to the active test
+  * An opposed test
+  * A resist test for the opposed test
+* Each of these defines at least what test to use and allows for skill/attributes to be configured, should the user want to
+* If there is no user configured test action default action values will be used that are connected to the test implementation
+* All test implementations are registered within `game.shadowrun5e.tests` and only taken and created from there
+* Modules can, in theory, overwrite a registered test implementation by replacing the implementation for a test within that registry
+### Test creation
+If you don't know how to create a `SuccessTest` implementation the helper function within `TestCreator` available at `game.shadowrun5e.test`
+provide a few different options. These are meant as system internal helpers to simplify the different ways to create tests
+into one helper and not pollute the general `SuccessTest` class.
+### Class structure
+Everything is based on the `SuccessTest` class, which defines general testing flow and also handles Foundry related interaction.
+
+The different Shadowrun 5 test types are created using subclasses:
+- OpposedTest
+- TeamworkTest
+### Test flow
+Triggering an active success test through an action will always show a dialog and chat message, both of which are optional.
+
+Should the action define a followup test, it will be initiated immediately for the active user.
+
+Opposing tests must be triggered manually by targeted actors through the chat message of the original active success test. Should the original action define a resist test, it will be initiated immediately for the opposing user.
+
+These behaviors are implemented within the `SuccessTest` and `OpposedTest` base classes and can be altered by implementing classes.
+
+## Modifier implementation
+The shadowrun5e system has multiple ways of handling modifiers on actors, items and 'situations':
+- actor local modifiers
+- situational modifiers
+  
+To define what modifiers a Shadowrun 5e Test uses an `action` can define a set of modifiers to use. These modifiers will be taken using the actors `ModifiersFlow` handler, sitting in between tests and modifiers applied onto a document.
+### Actor local modifiers
+The legacy modifiers are flat values for actors, which are taken as is and can be prepared during Document prepareData.
+
+Examples for these are modifiers for movement, armor and physical overflow.
+### Situational modifiers
+These modifiers depend upon the current situation a token / actor finds itself in at the moment. These can't be prepared beforehand but must be recalculated before values for each test can be used. They can be stored on all document types, but tend to be only on `Scene` and `SR5Actor` documents, which will be merged to a resulting situational modifier.
+
+This allows GMs to define broad situation modifiers for all actors on a specific scene, while also allowing to change some or all modifiers on an per actor basis as well.
+
+Examples for these are environmental, noise and recoil.
+These modifiers can also be used to apply rules that need to recalculate between tests or combat turns or other changing events outside of an actors context or data preparation.
