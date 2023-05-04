@@ -1088,6 +1088,7 @@
             "sin",
             "spell",
             "sprite_power",
+            "summoning",
             "weapon",
             "host"
         ],
@@ -1356,6 +1357,23 @@
                 "followed": {
                     "test": "DrainTest"
                 }
+            }
+        },
+        "summoning": {
+            "templates": ["description", "action"],
+            "action": {
+                "test": "SummonSpiritTest",
+                "opposed": {
+                    "test": "OpposedSummonSpiritTest"
+                },
+                "followed": {
+                    "test": "DrainTest"
+                }
+            },
+            "spirit": {
+                "force": 0,
+                "type": "",
+                "uuid": ""
             }
         },
         "critter_power": {

@@ -6,6 +6,7 @@ import {FLAGS, SYSTEM_NAME, SYSTEM_SOCKET} from './constants';
 import {SR5Actor} from './actor/SR5Actor';
 import {SR5Item} from './item/SR5Item';
 import {SR5ItemSheet} from './item/SR5ItemSheet';
+import {SR5SummoningItemSheet} from './item/SR5SummoningItemSheet';
 import {SR5Token} from './token/SR5Token';
 import {SR5ActiveEffect} from "./effect/SR5ActiveEffect";
 import {_combatantGetInitiativeFormula, SR5Combat} from './combat/SR5Combat';
@@ -272,6 +273,11 @@ ___________________
             label: "SR5.SheetItem",
             makeDefault: true
         });
+        Items.registerSheet(SYSTEM_NAME, SR5SummoningItemSheet, {
+            label: "SR5.SheetItem",
+            makeDefault: true,
+            types: ['summoning']
+        })
 
         // Register configs for embedded documents.
         DocumentSheetConfig.unregisterSheet(ActiveEffect, 'core', ActiveEffectConfig);

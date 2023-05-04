@@ -98,7 +98,7 @@ export class SummonSpiritTest extends SuccessTest {
      * @returns A subset of all spirit types
      */
     _prepareSpiritTypes() {
-        return SR5.spriteTypes;
+        return SR5.spiritTypes;
     }
 
     /**

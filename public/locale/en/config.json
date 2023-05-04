@@ -27,6 +27,7 @@
     "ITEM.TypeSin": "SIN",
     "ITEM.TypeSpell": "Spell",
     "ITEM.TypeSprite_power": "Sprite Power",
+    "ITEM.TypeSummoning": "Summoning",
     "ITEM.TypeWeapon": "Weapon",
     "SETTINGS": {
         "ApplyLimitsDescription": "Should Limits be applied to rolls",
@@ -964,6 +965,11 @@
     "SR5.StunTrack": "Stun Track",
     "SR5.Success": "Success!",
     "SR5.Successes": "Successes",
+    "SR5.Summoning": {
+        "SpiritType": "Spirit Type",
+        "FixedSpirit": "Prep. Spirit",
+        "DropSpirit": "Drop fixed Spirit"
+    },
     "SR5.Suppressing": "Suppressing",
     "SR5.Target": "Target",
     "SR5.TargetDevice": "Device",

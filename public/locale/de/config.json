@@ -1,5 +1,5 @@
 {
-        "ACTOR.TypeCharacter": "HORST",
+        "ACTOR.TypeCharacter": "Charakter",
         "ACTOR.TypeCritter": "Critter",
         "ACTOR.TypeIc": "IC",
         "ACTOR.TypeSpirit": "Geist",
@@ -27,6 +27,7 @@
         "ITEM.TypeSin": "SIN",
         "ITEM.TypeSpell": "Zauberspruch",
         "ITEM.TypeSprite_power": "Spritekraft",
+        "ITEM.TypeSummoning": "Beschwörung",
         "ITEM.TypeWeapon": "Waffe",
         "SETTINGS": {
                 "ApplyLimitsDescription": "Sollten Limits verwendet werden?",
@@ -966,6 +967,11 @@
         "SR5.StunTrack": "Geistiger Monitor",
         "SR5.Success": "Erfolg!",
         "SR5.Successes": "Erfolge",
+        "SR5.Summoning": {
+                "SpiritType": "Geistart",
+                "FixedSpirit": "Vorber. Geist",
+                "DropSpirit": "Geist ablegen"
+        },
         "SR5.Suppressing": "Sperrfeuer",
         "SR5.Target": "Ziel",
         "SR5.TargetDevice": "Gerät",
