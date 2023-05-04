@@ -34,9 +34,8 @@ export class SR5SummoningItemSheet extends SR5ItemSheet {
 
         if (data.type !== 'Actor') return;
         const actor = await fromUuid(data.uuid) as SR5Actor;
-        if (!actor.isSpirit()) return;
-        
-        await this.updatePreparedSpirit(actor.uuid);
+
+        await this.updatePreparedSpirit(actor);
     }
 
     override activateListeners(html: any): void {
@@ -62,7 +61,7 @@ export class SR5SummoningItemSheet extends SR5ItemSheet {
      * Handling the removal of a spirit by any sheet action.
      */
     async handleSpiritRemove(event: any) {
-        await this.updatePreparedSpirit('');
+        await this.item.update({'system.spirit.uuid': ''});
     }
 
     /**
@@ -70,7 +69,14 @@ export class SR5SummoningItemSheet extends SR5ItemSheet {
      * 
      * @param uuid A uuid or empty string to remove the prepared spirit.
      */
-    async updatePreparedSpirit(uuid: string='') {
-        await this.item.update({'system.spirit.uuid': uuid});
+    async updatePreparedSpirit(actor: SR5Actor) {
+        const spirit = actor.asSpirit();
+        if (!spirit) return;
+
+        await this.item.update({
+            'system.spirit.uuid': actor.uuid,
+            'system.spirit.type': spirit.system.spiritType,
+            'system.spirit.force': spirit.system.force,
+        });
     }
 }

@@ -210,6 +210,7 @@
         "SR5.CreateItemQuality": "Erstelle Qualität",
         "SR5.CreateItemSIN": "Erstelle SIN",
         "SR5.CreateItemSpell": "Erstelle Zauberspruch",
+        "SR5.CreateItemSummoning": "Erstelle Beschwörung",
         "SR5.CreateItemWeapon": "Erstelle Waffe",
         "SR5.CritterPower": {
                 "Categories": {
@@ -968,9 +969,9 @@
         "SR5.Success": "Erfolg!",
         "SR5.Successes": "Erfolge",
         "SR5.Summoning": {
-                "SpiritType": "Geistart",
+                "DropSpirit": "Geist ablegen",
                 "FixedSpirit": "Vorber. Geist",
-                "DropSpirit": "Geist ablegen"
+                "SpiritType": "Geistart"
         },
         "SR5.Suppressing": "Sperrfeuer",
         "SR5.Target": "Ziel",

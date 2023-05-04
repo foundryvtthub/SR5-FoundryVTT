@@ -212,6 +212,7 @@
     "SR5.CreateItemQuality": "Create Quality",
     "SR5.CreateItemSIN": "Create SIN",
     "SR5.CreateItemSpell": "Create Spell",
+    "SR5.CreateItemSummoning": "Create Summoning",
     "SR5.CreateItemWeapon": "Create Weapon",
     "SR5.CritterPower": {
         "Categories": {
@@ -966,9 +967,9 @@
     "SR5.Success": "Success!",
     "SR5.Successes": "Successes",
     "SR5.Summoning": {
-        "SpiritType": "Spirit Type",
+        "DropSpirit": "Drop fixed Spirit",
         "FixedSpirit": "Prep. Spirit",
-        "DropSpirit": "Drop fixed Spirit"
+        "SpiritType": "Spirit Type"
     },
     "SR5.Suppressing": "Suppressing",
     "SR5.Target": "Target",
