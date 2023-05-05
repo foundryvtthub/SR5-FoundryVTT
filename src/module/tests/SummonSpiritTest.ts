@@ -158,14 +158,15 @@ export class SummonSpiritTest extends SuccessTest {
      */
     calcDrain(opposingHits: number) {
         this.data.drain = ConjuringRules.summoningDrainValue(opposingHits);
-        this.calcDrainDamage(opposingHits);
+        this.data.drainDamage = this.calcDrainDamage(opposingHits);
     }
 
-    calcDrainDamage(opposingHits: number) {
+    calcDrainDamage(opposingHits: number): Shadowrun.DamageData {
         if (!this.actor) return DataDefaults.damageData();
 
         const magic = this.actor.getAttribute('magic').value;
         const force = this.data.force;
-        this.data.drainDamage = ConjuringRules.calcDrainDamage(opposingHits, force, magic);
+        
+        return ConjuringRules.calcDrainDamage(opposingHits, force, magic);
     }
 }
