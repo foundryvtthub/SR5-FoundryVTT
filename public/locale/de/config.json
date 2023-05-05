@@ -1085,7 +1085,8 @@
                         "DragOnCanvas": "Ziehe Geist auf Karte",
                         "Force": "Kraft des herbeizurufenden Geistes",
                         "ReagentDrams": "Dram aus Reagenzien für das Herbeirufen Limit",
-                        "SpiritType": "Art des herbeizurufenden Geistes"
+                        "SpiritType": "Art des herbeizurufenden Geistes",
+                        "PreparedSpirit": "Nutze einen vorbereiteten Geist Akteur anstelle eines generisch erstellten"
                 }
         },
         "SR5.Top": "Oberseite",

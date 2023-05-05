@@ -969,7 +969,7 @@
     "SR5.Success": "Success!",
     "SR5.Successes": "Successes",
     "SR5.Summoning": {
-        "DropSpirit": "Drop fixed Spirit",
+        "DropSpirit": "Drop Spirit",
         "FixedSpirit": "Prep. Spirit",
         "SpiritType": "Spirit Type"
     },
@@ -1081,6 +1081,7 @@
         "SummoningTest": {
             "DragOnCanvas": "Drag spirit on canvas",
             "Force": "Force of the summoned spirit",
+            "PreparedSpirit": "Use a prepared spirit actor instead of creating a generic one",
             "ReagentDrams": "Drams of reagents used for altering summoning limit",
             "SpiritType": "Type of the summoned spirit"
         }
