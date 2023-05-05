@@ -723,6 +723,7 @@
     "SR5.RangeWeaponAttack": "Range Weapon Attack",
     "SR5.Rating": "Rating",
     "SR5.Reach": "Reach",
+    "SR5.Reagent": "Reagent",
     "SR5.RecklessSpellButton": "Reckless",
     "SR5.Recoil": "Recoil",
     "SR5.RecoilCompensation": "Recoil Comp.",
@@ -1078,7 +1079,10 @@
             "Recoil": "Amount of bullets fired"
         },
         "SummoningTest": {
-            "DragOnCanvas": "Drag spirit on canvas"
+            "DragOnCanvas": "Drag spirit on canvas",
+            "Force": "Force of the summoned spirit",
+            "ReagentDrams": "Drams of reagents used for altering summoning limit",
+            "SpiritType": "Type of the summoned spirit"
         }
     },
     "SR5.Top": "Top",

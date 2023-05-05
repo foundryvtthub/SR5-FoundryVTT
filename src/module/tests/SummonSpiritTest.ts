@@ -3,7 +3,6 @@ import { DataDefaults } from "../data/DataDefaults";
 import { SuccessTest, SuccessTestData } from "./SuccessTest";
 import { PartsList } from '../parts/PartsList';
 import { SpellcastingRules } from '../rules/SpellcastingRules';
-import { DrainRules } from '../rules/DrainRules';
 import { ConjuringRules } from '../rules/ConjuringRules';
 
 
@@ -11,8 +10,12 @@ interface SummonSpiritTestData extends SuccessTestData {
     spiritTypes: typeof SR5.spiritTypes
     spiritTypeSelected: string
 
+    // Force value as described on SR5#300
     force: number
+    // Drain value as described on SR5#300
     drain: number
+    // Reagent value as described on SR5#317 'Summoning'
+    reagent: number
 
     drainDamage: Shadowrun.DamageData
 
@@ -101,17 +104,28 @@ export class SummonSpiritTest extends SuccessTest {
 
     /**
      * Calculate limit based on force selected by user.
+     * 
+     * According to SR5#300 'Summoning' and SR5#316 'Reagents'.
      */
     prepareLimitValue() {
         const force = Number(this.data.force);
-        this.data.limit.mod = PartsList.AddUniquePart(
-            this.data.limit.mod,
-            'SR5.Force',
-            SpellcastingRules.calculateLimit(force));
+        const reagent = Number(this.data.reagent);
+        const label = SpellcastingRules.limitIsReagentInsteadOfForce(reagent) ? 
+            'SR5.Reagent' : 'SR5.Force';
+        const limit = SpellcastingRules.calculateLimit(force, reagent);
+
+        // Cleanup previous calculation and add new limit part.
+        // NOTE: Instead of removing all parts, be specific in case of future additions to limit parts elsewhere.
+        const limitParts = new PartsList(this.data.limit.mod);
+
+        limitParts.removePart('SR5.Force');
+        limitParts.removePart('SR5.Reagent');
+
+        limitParts.addUniquePart(label, limit);
     }
 
     /**
-     * TODO: Reduce all spirit types to those available to the Summoner according to tradition.
+     * TODO: Reduce all spirit types to those available to the Summoner according to tradition or validate against selection.
      * @returns A subset of all spirit types
      */
     _prepareSpiritTypes() {
@@ -121,7 +135,6 @@ export class SummonSpiritTest extends SuccessTest {
     /**
      * Take data from summoning item for test execution.
      * @param data Test data to be extended
-     * @returns 
      */
     _prepareSummoningData(data: SummonSpiritTestData) {
         if (!this.item) return;
@@ -135,6 +148,7 @@ export class SummonSpiritTest extends SuccessTest {
         data.force = Math.max(data.force || summoning.system.spirit.force || 1, 1);
         data.spiritTypeSelected = data.spiritTypeSelected || summoning.system.spirit.type;
         data.preparedSpiritUuid = data.preparedSpiritUuid || summoning.system.spirit.uuid;
+        data.reagent = data.reagent || 0;
     }
 
     /**

@@ -506,7 +506,8 @@
                         "DamageResistanceTest": "Schadenswiderstandsprobe",
                         "Modifier": "Modifikator",
                         "Modifiers": "Modifikatoren",
-                        "OpposedTest": "Vergleichsprobe"
+                        "OpposedTest": "Vergleichsprobe",
+                        "SpiritType": "Art"
                 },
                 "ActorSheet": {
                         "CreateInventory": "Erstelle Inventar Ort",
@@ -725,6 +726,7 @@
         "SR5.RangeWeaponAttack": "Feuerwaffenangriff",
         "SR5.Rating": "Gerätestufe",
         "SR5.Reach": "Reichweite",
+        "SR5.Reagent": "Reagenzien",
         "SR5.RecklessSpellButton": "Schnell",
         "SR5.Recoil": "Rückstoß",
         "SR5.RecoilCompensation": "Rückstoßkomp.",
@@ -1080,7 +1082,10 @@
                         "Recoil": "Anzahl abgefeuerter Kugeln"
                 },
                 "SummoningTest": {
-                        "DragOnCanvas": "Ziehe Geist auf Karte"
+                        "DragOnCanvas": "Ziehe Geist auf Karte",
+                        "Force": "Kraft des herbeizurufenden Geistes",
+                        "ReagentDrams": "Dram aus Reagenzien für das Herbeirufen Limit",
+                        "SpiritType": "Art des herbeizurufenden Geistes"
                 }
         },
         "SR5.Top": "Oberseite",
