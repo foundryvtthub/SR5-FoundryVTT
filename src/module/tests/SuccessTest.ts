@@ -118,8 +118,8 @@ export interface SuccessTestMessageData {
  * - FoundryVTT chat message creation
  *
  * Usage:
- * const test = new SuccessTest({pool: 6});
- * await test.execute();
+ * > const test = new SuccessTest({pool: 6});
+ * > await test.execute();
  * 
  * The user facing point for a success test is the execute() method.
  * It's up to the caller to decide what parameters to give.
@@ -131,8 +131,8 @@ export interface SuccessTestMessageData {
  * - ...
  * 
  * Create a test from an item:
- * const test = await TestCreator.fromItem(item);
- * test.execute();
+ * > const test = await TestCreator.fromItem(item);
+ * > test.execute();
  * 
  * Typically the system will create a test from an action. Each action contains a reference
  * for the active, opposed, resist and follow up test to use. That test will be taken by the
@@ -140,14 +140,12 @@ export interface SuccessTestMessageData {
  * be an action configuration that is used to retrieve and create the test.
  * 
  * The test registry is a simple key value store mapping names to classes underneath
- * game.shadowrun5e.tests.
+ * game.shadowrun5e.tests
  * 
  * For the default SuccessTest class the registry entry would look like this:
- * game.shadowrun5e.tests['SuccessTest'] = SuccessTest;
+ * > game.shadowrun5e.tests['SuccessTest'] = SuccessTest;
  * and it would be retrieved by the TestCreator like this:
- * const SuccessTest = TestCreate._getTestClass('SuccessTest');
- * 
- * TODO: Check if Actor.getRollData() can be used to better implement this
+ * > const SuccessTest = TestCreate._getTestClass('SuccessTest');
  */
 export class SuccessTest {
     public data: SuccessTestData;
