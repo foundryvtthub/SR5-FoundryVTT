@@ -27,7 +27,7 @@
         "ITEM.TypeSin": "SIN",
         "ITEM.TypeSpell": "Zauberspruch",
         "ITEM.TypeSprite_power": "Spritekraft",
-        "ITEM.TypeSummoning": "Beschwörung",
+        "ITEM.TypeSummoning": "Herbeirufung",
         "ITEM.TypeWeapon": "Waffe",
         "SETTINGS": {
                 "ApplyLimitsDescription": "Sollten Limits verwendet werden?",
@@ -210,7 +210,7 @@
         "SR5.CreateItemQuality": "Erstelle Qualität",
         "SR5.CreateItemSIN": "Erstelle SIN",
         "SR5.CreateItemSpell": "Erstelle Zauberspruch",
-        "SR5.CreateItemSummoning": "Erstelle Beschwörung",
+        "SR5.CreateItemSummoning": "Erstelle Herbeirufung",
         "SR5.CreateItemWeapon": "Erstelle Waffe",
         "SR5.CritterPower": {
                 "Categories": {
@@ -1004,7 +1004,7 @@
                 "MeleeAttackTest": "Nahkampf Angriff",
                 "NaturalRecoveryPhysicalTest": "Natürliche Genesung Körperlich",
                 "NaturalRecoveryStunTest": "Natürliche Genesung Geistig",
-                "OpposedSummonSpiritTest": "Widerstehe Beschwörung",
+                "OpposedSummonSpiritTest": "Widerstehe Herbeirufung",
                 "OpposedTest": "Vergleichsprobe",
                 "PhysicalDefenseTest": "Physische Verteidigung",
                 "PhysicalResistTest": "Physischer Schadenswiderstand",
@@ -1013,7 +1013,7 @@
                 "SkillTest": "Fertigkeitenprobe",
                 "SpellcastingTest": "Spruchzauberei",
                 "SuccessTest": "Erfolgsprobe",
-                "SummonSpiritTest": "Geist beschwören",
+                "SummonSpiritTest": "Geist Herbeirufen",
                 "SupressionDefenseTest": "Unterdrückungsfeuer Verteidigung",
                 "ThrownAttackTest": "Wurfwaffen Angriff"
         },
