@@ -46,5 +46,18 @@ export const ConjuringRules = {
         Helpers.calcTotal(damage, {min: 0});
         
         return damage;
+    },
+
+    /**
+     * Determine if the chosen force is valid for the given magic attribute.
+     * 
+     * See SR5#300 'Summoning' Step 1.
+     * 
+     * @param force The force value.
+     * @param magic The magic attribute value.
+     */
+    validForce: (force: number, magic: number): boolean => {
+        if (force < 1) return false;
+        return force <= magic * 2;
     }
 }

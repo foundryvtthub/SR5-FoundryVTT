@@ -82,6 +82,24 @@ export class SummonSpiritTest extends SuccessTest {
     }
 
     /**
+     * Validate user input during dialog or creation and inform user about invalid values.
+     */
+    override validateBaseValues() {
+        this.warnAboutInvalidForce();
+    }
+
+    /**
+     * Don't abort execution as there might be some reason users would want to allow 'invalid' values.
+     */
+    warnAboutInvalidForce() {
+        const force = Number(this.data.force);
+        const magic = Number(this.actor?.getAttribute('magic')?.value ?? 0);
+        if (!ConjuringRules.validForce(force, magic)) {
+            ui.notifications?.warn('SR5.Warnings.InvalidSummoningForce', {localize: true});
+        }
+    }
+
+    /**
      * Calculate limit based on force selected by user.
      */
     prepareLimitValue() {

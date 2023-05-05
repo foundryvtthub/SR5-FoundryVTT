@@ -531,7 +531,7 @@ export class SuccessTest {
     alterBaseValues() {}
 
     /**
-     * Overwrite this method if you need to alter base values.
+     * The general base value preparation. This will be re applied at multiple points before execution.
      */
     prepareBaseValues() {
         this.applyPushTheLimit();
@@ -572,6 +572,8 @@ export class SuccessTest {
 
     /**
      * Calculate only the base test that can be calculated before the test has been evaluated.
+     * 
+     * This will be re applied at multiple points before execution.
      */
     calculateBaseValues() {
         this.data.modifiers.value = Helpers.calcTotal(this.data.modifiers);
@@ -581,7 +583,14 @@ export class SuccessTest {
         this.data.limit.value = Helpers.calcTotal(this.data.limit, {min: 0});
 
         console.debug(`Shadowrun 5e | Calculated base values for ${this.constructor.name}`, this.data);
+
+        this.validateBaseValues();
     }
+
+    /**
+     * Allow implementations to validate values before execution.
+     */
+    validateBaseValues() {}
 
     /**
      * Helper method to evaluate the internal SR5Roll and SuccessTest values.

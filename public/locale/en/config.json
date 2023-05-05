@@ -901,9 +901,9 @@
     "SR5.Spirit": {
         "Bound": "Bound",
         "Force": "Force",
+        "MissingSummoner": "No active summoner",
         "Services": "Services",
         "Summoner": "Summoner",
-        "MissingSummoner": "No active summoner",
         "Type": "Type",
         "Types": {
             "Air": "Air",
@@ -1018,8 +1018,8 @@
     "SR5.ToggleEquip": "Toggle Equipped",
     "SR5.Tooltips": {
         "Actor": {
-            "ResetActorForNewRun": "Reset damage, edge, etc. for a new run",
-            "MissingSummoner": "Drag&Drop Character or use summoning action"
+            "MissingSummoner": "Drag&Drop Character or use summoning action",
+            "ResetActorForNewRun": "Reset damage, edge, etc. for a new run"
         },
         "Effect": {
             "Inactive": "Inactive effects don't apply their changes until they are enabled",
@@ -1139,6 +1139,7 @@
         "EdgeRulesCantBeAppliedOnTestsWithoutAnActor": "Edge points can't be spent on tests without actors",
         "HostItemOnlyAcceptIC": "Only IC actors can be added to hosts",
         "InvalidMarksCount": "You've trying to place a strange number of marks",
+        "InvalidSummoningForce": "Force value chosen doesn't adhere to the rules",
         "NegativeLimitValue": "Limit values must positive numbers",
         "NoFireModeConfigured": "Ranged weapon has no firemode configured. Will use single shot.",
         "SkillCantBeDefault": "This skill can't be rolled as it can't be defaulted",
