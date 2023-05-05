@@ -497,7 +497,7 @@ export class SuccessTest {
 
         const data = await dialog.select();
         if (dialog.canceled) {
-            await this._cleanupAfterExecutionCancel();
+            await this.cleanupAfterExecutionCancel();
             return false
         };
 
@@ -513,22 +513,16 @@ export class SuccessTest {
     }
 
     /** 
-     * Allow tests to clean up their messes made after users canceled via dialog.
+     * Override this method if there needs to be some cleanup after a user has canceled a dialog 
+     * but before the tests actual execution.
      */
-    async _cleanupAfterExecutionCancel() {}
+    async cleanupAfterExecutionCancel() {}
 
     /**
      * Override this method if you want to save any document data after a user has selected values
      * during user facing dialog.
      */
     async saveUserSelectionAfterDialog() {}
-
-    /**
-     * Allow sub-classes to alter the base value calculation.
-     * 
-     * This can be used to dynamically alter action calculation before anything else.
-     */
-    alterBaseValues() {}
 
     /**
      * The general base value preparation. This will be re applied at multiple points before execution.
@@ -1195,8 +1189,6 @@ export class SuccessTest {
         await this.populateTests();
         await this.populateDocuments();
         await this.prepareDocumentData();
-
-        this.alterBaseValues();
 
         // Initial base value preparation will show default result without any user input.
         this.prepareBaseValues();

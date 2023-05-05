@@ -1148,7 +1148,8 @@
         "NegativeLimitValue": "Limit values must positive numbers",
         "NoFireModeConfigured": "Ranged weapon has no firemode configured. Will use single shot.",
         "SkillCantBeDefault": "This skill can't be rolled as it can't be defaulted",
-        "TokenSelectionNeeded": "One ore more tokens need to be selected"
+        "TokenSelectionNeeded": "One ore more tokens need to be selected",
+        "SummoningNotConcluded": "Summoning incomplete. Wait for spirit to oppose summoning to determine drain."
     },
     "SR5.Weapon": "Weapon",
     "SR5.WeaponAmmoCount": "Ammo Count",

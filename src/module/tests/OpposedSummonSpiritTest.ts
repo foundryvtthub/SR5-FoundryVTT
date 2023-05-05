@@ -54,22 +54,6 @@ export class OpposedSummonSpiritTest extends OpposedTest {
     }
 
     /**
-     * The order of summoning a spirit goes:
-     * - Summoning it
-     * - it resisting your summoning
-     * - the summoner resists the drain based on the spirits results
-     */
-    override _prepareFollowupActionsTemplateData() {
-        const actions: Shadowrun.FollowupAction[] = [];
-
-        const testCls = TestCreator._getTestClass(this.against.data.action.followed.test);
-        if (!testCls) return actions;
-
-        actions.push({label: testCls.label});
-        return actions;
-    }
-
-    /**
      * When summoning the opposing spirit test triggers the DrainTest from summoning.
      * Since we can expect this test be within the GM context, we can't auto cast DrainTest.
      */
@@ -77,14 +61,14 @@ export class OpposedSummonSpiritTest extends OpposedTest {
         return false;
     }
 
-    /**
-     * Calculate drain and execute the actives test followup (should be drain test)
-     */
-    override async executeFollowUpTest() {
-        this.against.calcDrain(this.hits.value);
-        await this.against.saveToMessage();
-        this.against.executeFollowUpTest();
-    }
+    // /**
+    //  * Calculate drain and execute the actives test followup (should be drain test)
+    //  */
+    // override async executeFollowUpTest() {
+    //     this.against.calcDrain(this.hits.value);
+    //     await this.against.saveToMessage();
+    //     this.against.executeFollowUpTest();
+    // }
 
     /**
      * To have an opposing actor, that's not on the map already, create the spirit actor.
@@ -109,18 +93,16 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * A failure for the spirit is a success for the summoner.
      */
     override async processFailure() {
+        await this.updateSummonTestForFollowup();
         await this.finalizeSummonedSpirit();
-        
-        // Finalize the original test values.
-        this.against.calcDrain(this.hits.value);
-        await this.against.saveToMessage();
     }
 
     /**
      * A success of the spirit is a failure for the summoner.
      */
     override async processSuccess() {
-        await this._cleanupAfterExecutionCancel();
+        await this.updateSummonTestForFollowup();
+        await this.cleanupAfterExecutionCancel();
     }
 
     override get successLabel(): string {
@@ -129,6 +111,12 @@ export class OpposedSummonSpiritTest extends OpposedTest {
 
     override get failureLabel(): string {
         return 'SR5.TestResults.SpiritSummonSuccess';
+    }
+
+    async updateSummonTestForFollowup() {
+        // Finalize the original test values.
+        this.against.calcDrain(this.hits.value);
+        await this.against.saveToMessage();
     }
 
     /**
@@ -226,7 +214,7 @@ export class OpposedSummonSpiritTest extends OpposedTest {
      * 
      * When user cancels the dialog, the spirits has been created. Remove it.
      */
-    override async _cleanupAfterExecutionCancel() {
+    override async cleanupAfterExecutionCancel() {
         if (!this.data.summonedSpiritUuid) return;
         const actor = await fromUuid(this.data.summonedSpiritUuid);
         await actor?.delete();

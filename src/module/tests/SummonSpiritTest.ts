@@ -14,10 +14,13 @@ interface SummonSpiritTestData extends SuccessTestData {
     force: number
     // Drain value as described on SR5#300
     drain: number
+    drainDamage: Shadowrun.DamageData
+
     // Reagent value as described on SR5#317 'Summoning'
     reagent: number
 
-    drainDamage: Shadowrun.DamageData
+    // Determine that summoning concluded and drain is ready to be cast.
+    drainReady: boolean
 
     preparedSpiritUuid: string
 }
@@ -90,6 +93,14 @@ export class SummonSpiritTest extends SuccessTest {
     }
 
     /**
+     * Notify summoners about incomplete summoning. To avoid pre mature drain tests.
+     */
+    override async executeFollowUpTest() {
+        if (!this.data.drainReady) ui.notifications?.warn('SR5.Warnings.SummoningNotConcluded', {localize: true});
+        await super.executeFollowUpTest();
+    }
+
+    /**
      * Don't abort execution as there might be some reason users would want to allow 'invalid' values.
      */
     warnAboutInvalidForce() {
@@ -155,6 +166,7 @@ export class SummonSpiritTest extends SuccessTest {
      * NOTE: This will be called by the opposing test via a follow up test action.
      */
     calcDrain(opposingHits: number) {
+        this.data.drainReady = true;
         this.data.drain = ConjuringRules.summoningDrainValue(opposingHits);
         this.data.drainDamage = this.calcDrainDamage(opposingHits);
     }

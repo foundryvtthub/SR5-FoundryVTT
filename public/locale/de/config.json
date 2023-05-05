@@ -1151,7 +1151,8 @@
                 "NegativeLimitValue": "Limit Werte müssen über Null liegen",
                 "NoFireModeConfigured": "Fernwaffe hat keinen Feuermodus konfiguriert. Verwende Einzelfeuer.",
                 "SkillCantBeDefault": "Auf diese Fertigkeit kann keine Probe abgelegt werden, da sie nicht improvisiert werden kann",
-                "TokenSelectionNeeded": "Ein oder mehrere Tokens müssen ausgewählt sein"
+                "TokenSelectionNeeded": "Ein oder mehrere Tokens müssen ausgewählt sein",
+                "SummoningNotConcluded": "Herbeirufung unvollständig. Warte auf Gegenprobe des Geists, um Entzug zu bestimmen."
         },
         "SR5.Weapon": "Waffen",
         "SR5.WeaponAmmoCount": "Munition",
