@@ -583,8 +583,6 @@ export class SuccessTest {
         this.data.limit.value = Helpers.calcTotal(this.data.limit, {min: 0});
 
         console.debug(`Shadowrun 5e | Calculated base values for ${this.constructor.name}`, this.data);
-
-        this.validateBaseValues();
     }
 
     /**
@@ -1203,6 +1201,7 @@ export class SuccessTest {
         // Initial base value preparation will show default result without any user input.
         this.prepareBaseValues();
         this.calculateBaseValues();
+        this.validateBaseValues();
 
         // Allow user to change details.
         const userConsented = await this.showDialog();
@@ -1245,6 +1244,7 @@ export class SuccessTest {
 
         // Can't use normal #execute as not all general testing flow are needed.        
         this.calculateBaseValues();
+        this.validateBaseValues();
 
         const actorConsumedResources = await this.consumeDocumentRessoucesWhenNeeded();
         if (!actorConsumedResources) return this;
@@ -1280,6 +1280,7 @@ export class SuccessTest {
 
         // Can't use normal #execute as not all general testing flow are needed.        
         this.calculateBaseValues();
+        this.validateBaseValues();
 
         const actorConsumedResources = await this.consumeDocumentRessoucesWhenNeeded();
         if (!actorConsumedResources) return this;
