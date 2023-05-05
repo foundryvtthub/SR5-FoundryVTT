@@ -28,8 +28,6 @@ interface SummonSpiritTestData extends SuccessTestData {
  * NOTE: While we need spell casting data, we don't need general spell casting flow.
  *       This is due to spell casting operating on spell items, while summoning is an action item.
  * 
- * #TODO: How to implement reagents
- * 
  * Summoning uses the default Success Test, Opposed Test and Followup Flow.
  */
 export class SummonSpiritTest extends SuccessTest {
